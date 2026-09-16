@@ -206,3 +206,18 @@ path, passed from trigger actions, schedules, and entity activation; an
 instance-level volume scale applied to every sound the timeline starts.
 Timecode chase keeps forcing loop 1. Until then, hide the ignored fields
 for timeline targets.
+
+## Scripting
+
+### #143 — Schedules cannot run a Script action
+
+*Open, 2026-09-16. Cited by: [scripting.md](concepts/scripting.md) sections 4.1 and 8, triggers-and-actions.md section 6.*
+
+**Motivation.** The schedule editor offers the Script action type, but the
+schedule runner supports only playable and state actions and logs Script as
+unsupported. The workarounds are a timeline with a Script milestone, or a
+script subscribed to the schedule-fired event.
+
+**Proposal.** Run the script at the schedule start with source `SCHEDULE`
+and the schedule code as the trigger code, and consider a schedule-ended
+lifecycle event so a second script can run at the end.

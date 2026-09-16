@@ -281,7 +281,7 @@ quote the number when you talk to DMX Core and read
 | Long-lived scripts | No timers, no event subscriptions from inside a script, no background loop beyond the timeout. A "listener" is an input trigger with a Script action. | By design |
 | Receiving OSC or MQTT in a script | Send only. | By design |
 | HTTP requests | No `dmx.http`. Use an HTTP output event (GET only) or MQTT. | Deferred, planned as admin opt-in |
-| Schedules running scripts directly | Script is not a schedule action type. | Not planned |
+| Schedules running scripts directly | Script is not a schedule action type; the editor offers it but the schedule logs it as unsupported. Asks for Script as a schedule start target, and possibly a schedule-ended event. | Open, #143 |
 | Timeline and hold events | No `TIMELINESTARTED`, `TIMELINEENDED`, or hold lifecycle events. | Not planned |
 | Cue events for timeline children | `CUESTARTED` and `CUEENDED` are top-level only. | By design |
 | Fade on `setFixture` | Instant; fade by stepping. | Not planned |

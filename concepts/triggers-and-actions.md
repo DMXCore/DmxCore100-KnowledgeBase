@@ -379,7 +379,7 @@ private, so quote the number when you talk to DMX Core and read
 | Hex or escaped bytes in UDP and TCP output payloads | Trigger payloads accept hex, output payloads are plain text. | Open, #141 |
 | TCP output without a matching TCP Connector trigger | The output rides an input trigger's connection; without one nothing is sent and the Test button still reports success. | Open, #141 |
 | Schedule fade-out at end | `fadeOutDurationMS` is not applied when a schedule ends; the item stops or runs to completion. | Open, #140 |
-| Schedule action types | Cue, Timeline, Preset, Sound, AmbientPreset, OutputToggle, Blackout only. | By design |
+| Schedule action types | Cue, Timeline, Preset, Sound, AmbientPreset, OutputToggle, Blackout only. Script is requested. | Partly open, #143 |
 | Plugin trigger payload | `FireAsync(code)` carries no data; the script context payload is empty. | Not planned |
 | Digital input release edge | A digital-input trigger reports one edge direction. Threshold 1 never releases (no Flash or Momentary); threshold 0 produces an inactive edge only, which runs no action. Acting on both "contact closed" and "contact opened" is not possible from one input today. | Open, #139 |
 | Press-and-hold auto-repeat | Stream Deck only, Control Value Up/Down only. | Deferred |
