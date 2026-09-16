@@ -168,14 +168,15 @@ edge; threshold-0 rows change from dead to inverted.
 
 ### #140 — Schedule end ignores the action's fade-out duration
 
-*Open, 2026-09-16. Cited by: triggers-and-actions.md sections 6 and 10.*
+*Closed, shipped 2026-09-16 (streaming engine plus Core). Cited by: triggers-and-actions.md sections 6 and 10.*
 
 **Motivation.** The fade-out field is editable on a schedule's action but is
 not applied when the schedule ends. Cues, sounds, and timelines stop hard
 (or run to completion); presets release with the default fade.
 
-**Proposal.** Pass the action's fade-out into the schedule end path for
-cue, sound, timeline, preset, and ambient preset. Run-to-completion is
+**Resolution.** The schedule end path fades its own player out over the
+action's fade-out: cue (only that cue, other cues keep playing), sound,
+timeline, preset, and ambient preset. 0 stops hard; run-to-completion is
 unchanged.
 
 ### #141 — TCP output event only sends over a TCP Connector trigger's connection; UDP/TCP output payloads are literal text

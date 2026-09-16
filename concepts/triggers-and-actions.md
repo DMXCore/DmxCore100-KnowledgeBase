@@ -273,10 +273,12 @@ Behavior:
   logs a warning and does nothing.
 - **Start** plays the item with `fadeInDurationMS`, `loop`, `dimmerScale`,
   `volume`. Playing items are held as schedule-owned players.
-- **End** stops the item. With `runToCompletion` a cue, sound, or timeline
-  finishes its current pass first. A preset is released; an ambient preset
-  is cleared with the system default fade. The action's `fadeOutDurationMS`
-  is not applied at schedule end today (section 10).
+- **End** stops the item over the action's `fadeOutDurationMS` (#140,
+  shipped 2026-09-16): a cue, sound, or timeline fades out, a preset is
+  released over it, an ambient preset is cleared over it. 0 stops hard
+  (presets and ambient presets then use their default fade). With
+  `runToCompletion` a cue, sound, or timeline finishes its current pass
+  instead.
 - **Priority.** Candidates are ordered by `priority`; among schedules due at
   the same minute the highest number runs. A running schedule ends early
   when a schedule with a higher priority number starts before its end time.
@@ -380,7 +382,7 @@ private, so quote the number when you talk to DMX Core and read
 | HTTP output event with POST, body, or headers | GET only. Use a Script action with `osc.send` or `mqtt.publish`, or a plugin. | Not planned |
 | Hex or escaped bytes in UDP and TCP output payloads | Trigger payloads accept hex, output payloads are plain text. | Open, #141 |
 | TCP output without a matching TCP Connector trigger | The output rides an input trigger's connection; without one nothing is sent and the Test button still reports success. | Open, #141 |
-| Schedule fade-out at end | `fadeOutDurationMS` is not applied when a schedule ends; the item stops or runs to completion. | Open, #140 |
+| Schedule fade-out at end | Fixed: `fadeOutDurationMS` applies when a schedule ends (section 6). | Closed, #140 |
 | Schedule action types | Cue, Timeline, Preset, Sound, AmbientPreset, OutputToggle, Blackout only. Script is requested. | Partly open, #143 |
 | Plugin trigger payload | `FireAsync(code)` carries no data; the script context payload is empty. | Not planned |
 | Digital input release edge | Fixed: a digital-input trigger now reports both edges (section 3.2). Acting on "contact opened" with its own action still needs a second, inverted trigger (threshold 0). | Closed, #139 |
