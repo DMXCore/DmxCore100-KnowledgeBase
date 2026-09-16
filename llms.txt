@@ -14,6 +14,8 @@ Read the user documentation first for the operator's view: https://docs.dmxcore.
 
 - [Plugin SDK](concepts/plugin-sdk.md): plugin roles (event source, mirror, action target, Control Value backend, output protocol, importer, OSC endpoint); packaging, manifest, registry, contract version history 1.0 to 1.12; lifecycle (30 s initialize, 10 s shutdown, hot reload, safe mode), serial dispatch, 20-fault budget and exemptions; settings, state, device identity, connection state; API-selection table; each surface (Triggers, Entities with 150 ms coalescing and echo, MQTT availability topics, Actions 10 s timeout, Control Value backends, Outputs session model and 2 s backoff, Imports frame sink, OSC precedence and 64-subscription limit, mDNS, Playback); testing host; limits and gaps.
 
+- [Integration API and the Entity Catalog](concepts/integration-api-and-entities.md): the one catalog projected by the Integration API (HTTP + WebSocket), the MCP server, and the plugin entity API; kinds (scene, switch, level, select, number, button, sensor); namespaces and listing rules; catalog change debounce (500 ms); state sources per entity and the 150 ms coalescing and echo rules; the internal effect of every command including playback defaults for cue and sound activate; Integration API limits and resync; MCP tool mapping; Home Assistant mapping; worked Companion example; limits and gaps.
+
 ## Reference
 
 - [Tracker cross-reference](issues.md): summaries of the private DMX Core tracker items the concept files cite, by number.
