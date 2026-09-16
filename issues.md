@@ -152,7 +152,8 @@ button report "not supported" for existing rows.
 
 ### #139 — Digital input trigger reports only one edge direction
 
-*Open, 2026-09-16. Cited by: triggers-and-actions.md sections 3.2 and 10.*
+*Closed, shipped 2026-09-16 (streaming engine fix plus Core). Cited by:
+triggers-and-actions.md sections 3.2 and 10.*
 
 **Motivation.** A digital-input trigger with threshold 1 fires on activation
 and never produces a release, so Flash presets and Momentary timelines
@@ -160,9 +161,10 @@ cannot be driven from a contact closure. Threshold 0 produces only the
 inactive edge, which runs no action. DMX-channel triggers already report
 both edges.
 
-**Proposal.** Make digital-input triggers edge-symmetric like DMX triggers,
-and reinterpret the threshold as polarity (1 = active-high, 0 = inverted).
-This is a change in the streaming engine as well as the Core.
+**Resolution.** Digital-input triggers are edge-symmetric like DMX triggers,
+deduplicated by the triggered state, and the threshold is the polarity
+(1 = active-high, 0 = inverted). Existing threshold-1 rows gain a release
+edge; threshold-0 rows change from dead to inverted.
 
 ### #140 — Schedule end ignores the action's fade-out duration
 

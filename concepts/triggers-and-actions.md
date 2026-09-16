@@ -124,7 +124,7 @@ currently in its triggered state.
 | OSC | `address` (lowercased, must start with `/`) | Argument text equals `startPayload` | Argument text equals `stopPayload` | With no payloads configured: argument `1` (or no argument) is rising, anything else is falling. `[payload]` in the address is replaced by each payload to form two full addresses. |
 | MQTT | `address` = topic, exact match, lowercased | Payload text equals `startPayload` | Payload text equals `stopPayload` | With no payloads configured: payload parsed as a boolean (`1`, `true`, `on`, ...); unparseable means rising. `[payload]` works as for OSC. The broker is a system setting. Topic wildcards are not supported in the address. |
 | Art-Net, sACN, DMX Serial | `universeId`, `channel` 1–512, `threshold` 0–255, `dmxTriggerMode` | Channel value goes **above** the threshold | Channel value goes to or below the threshold | `AboveThreshold`: evaluate from the first frame. `ZeroThenAboveThreshold`: ignore everything until the channel has been seen at 0 once, then behave as AboveThreshold. Prevents a trigger firing on the first frame of a console that is already up. sACN joins the universe's multicast group. |
-| Digital Input | `universeId` = module input 1–4, `threshold` | Input goes active, when `threshold` is 1 | Input goes inactive, when `threshold` is 0 | Each trigger sees **one** edge direction. A threshold of 1 fires the action on activation and never produces a release, so Flash and Momentary cannot work from a digital input. A threshold of 0 produces only the inactive edge, which runs no action. |
+| Digital Input | `universeId` = module input 1–4, `threshold` = polarity | Input goes active (`threshold` 1, the default) or inactive (`threshold` 0, inverted) | The opposite transition | Both edges are reported, deduplicated by the triggered state, so Flash and Momentary follow the contact. Before #139 (fixed 2026-09-16) a trigger saw one edge direction only. |
 | Control Value | `address` = Control Value code, `threshold` percent, `startPayload` / `stopPayload` choice | See the Control Values document | | Fires on any origin except the trigger's own. First value arms without firing. |
 | Plugin | `code`, optional `address` = plugin id | The plugin calls `FireAsync(code)` | Never | With `address` set only that plugin can fire it. Unknown or disabled codes are ignored. No payload travels with a plugin fire. |
 
@@ -381,7 +381,7 @@ private, so quote the number when you talk to DMX Core and read
 | Schedule fade-out at end | `fadeOutDurationMS` is not applied when a schedule ends; the item stops or runs to completion. | Open, #140 |
 | Schedule action types | Cue, Timeline, Preset, Sound, AmbientPreset, OutputToggle, Blackout only. Script is requested. | Partly open, #143 |
 | Plugin trigger payload | `FireAsync(code)` carries no data; the script context payload is empty. | Not planned |
-| Digital input release edge | A digital-input trigger reports one edge direction. Threshold 1 never releases (no Flash or Momentary); threshold 0 produces an inactive edge only, which runs no action. Acting on both "contact closed" and "contact opened" is not possible from one input today. | Open, #139 |
+| Digital input release edge | Fixed: a digital-input trigger now reports both edges (section 3.2). Acting on "contact opened" with its own action still needs a second, inverted trigger (threshold 0). | Closed, #139 |
 | Press-and-hold auto-repeat | Stream Deck and OSC surfaces only, Control Value Up/Down only. | Deferred for MIDI and keypads |
 | Hold-to-confirm on the web operator view | A Yes/No dialog instead of a hold. | By design |
 | Value-mode soft takeover | A value trigger jumps the target to the incoming value. | By design |
@@ -401,13 +401,11 @@ last call over UDP.
 2. **Door contact.** Input trigger, type Digital Input, `universeId` 1,
    `threshold` 1, action Preset `DOOR_OPEN` with mode Normal and
    `fadeInDurationMS` 500. The preset applies when the contact activates.
-   Restoring the look when the contact releases is **not** possible from
-   the same input (section 3.2): a digital input reports one edge direction
-   and never produces a release. Restore it from a schedule, from the next
-   show, or ask DMX Core for the release-edge gap in section 10. If the
-   contact can instead be read by a lighting console and sent as a DMX
-   channel, an Art-Net or sACN trigger has both edges and a Flash preset
-   works as expected.
+   To restore the look when the contact releases, use mode **Flash**
+   instead: the digital input reports both edges (section 3.2), so the
+   preset applies while the contact is active and releases when it opens.
+   To run a *different* action when the contact opens, add a second Digital
+   Input trigger on the same input with `threshold` 0 (inverted).
 3. **Last call.** Input trigger, type UDP Listener, `port` 9000,
    `startPayload` `"LASTCALL"`, action Timeline `LAST_CALL`. The POS sends
    the datagram `LASTCALL` to the device on port 9000. Because matching is a
@@ -417,6 +415,6 @@ last call over UDP.
    start of the `LAST_CALL` timeline so the POS gets a confirmation.
 
 What you will observe: the Stream Deck key runs its action on press and
-ignores release. The door contact produces one rising edge per activation
-and nothing on release. The UDP trigger fires on every matching datagram
+ignores release. The door contact produces a rising edge when it activates
+and a falling edge when it releases. The UDP trigger fires on every matching datagram
 with no debounce, so the POS should send once.
