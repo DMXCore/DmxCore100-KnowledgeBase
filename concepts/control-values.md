@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `e36880c2`
+**Verified against:** DMX Core 100 software `main` at commit `2eb668c0`
 (2026-09-16), Plugin SDK contract 1.12.
 **User-facing documentation:** <https://docs.dmxcore.com/dmx-core-100/integrations/control-values>
 
@@ -253,11 +253,19 @@ surface keys, input trigger actions, custom-menu action items, and schedules.
 No fade. The action's fade-in and fade-out fields do not apply to Control
 Value actions.
 
-**Press-and-hold auto-repeat.** On Stream Deck (USB and network) surfaces, a
-key bound to a Control Value Up or Down action fires once on press and, after
-a 400 ms hold, repeats every 150 ms until release. A quick tap yields exactly
-one step. This is the only action type that auto-repeats. MIDI and touchscreen
-buttons do not repeat.
+**Press-and-hold auto-repeat.** On Stream Deck (USB and network) and OSC
+surfaces, a key bound to a Control Value Up or Down action fires once on press
+and, after a 400 ms hold, repeats every 150 ms until release. A quick tap
+yields exactly one step. This is the only action type that auto-repeats. MIDI
+and touchscreen buttons do not repeat.
+
+**Stream Deck readout.** A Stream Deck key whose action targets a Control
+Value shows the live value on its face (Level as percent, Selector as choice,
+Toggle as On/Off, Counter as its number), with a per-key show-value switch and
+an optional format string. A Stream Deck+ dial can drive a Level, or with the
+step-per-tick target step any kind (a Counter counts, a Selector cycles), and
+the LCD strip shows one segment per dial with its label and value. See the
+Custom Menus and Control Surfaces document, section 4.4.
 
 **Custom-menu button highlight.** A custom-menu action item bound to a
 Control Value Set or Toggle highlights when the live value matches the set
@@ -494,7 +502,6 @@ quote the number when you talk to DMX Core and read
 |---|---|---|
 | Home Assistant `number` entity for Counters | The Core exposes Counters as `number` entities since SDK 1.12; the Home Assistant plugin has to be updated to map them. Until then a Counter is not visible in Home Assistant. | Follow-up to #131, plugin side |
 | Up, Down, or a step amount over the Integration API | Only absolute `setNumber`. Compute the next value client-side. | Not planned |
-| Live value on a Stream Deck key face or LCD strip | Key images render once from the static label and Control Value keys have no active state. The Stream Deck+ strip shows only the product name and bank label; dials drive Level targets only. Asks for a live readout on key faces (part A) and per-dial strip segments with Selector and Counter stepping (part B). | Open, #133 |
 | Display-only custom-menu readout | The menu has Slider, Segmented, and Action items. No text readout of a value. Asks for a `ValueDisplay` item with a label and format. | Open, #135 |
 | Serial port ownership for plugins | Not a Control Value gap, but it blocks a common companion design: a plugin that drives a serial display from a Control Value. The Core probes every serial port at startup unless probing is disabled, and there is no claim registry. | Open, #134 |
 | Fire actions on the falling edge | A Control Value input trigger runs its action on the rising edge only. Falling edges update the state display only. | Not planned (framework-wide) |
@@ -587,6 +594,8 @@ bump, and that a display plugin mirrors.
    entities with `min` 0, `max` 99, `step` 1, and can `setNumber` to reset
    them at the start of a game.
 
-The live score is visible on the touchscreen through a custom-menu item and
-in the admin UI; a text readout item (#135) and a Stream Deck key-face readout
-(#133) are still open.
+The live score is visible on every Stream Deck key that acts on the Counter
+(the key face shows the number and a Set key lights while it matches), on the
+Stream Deck+ LCD strip when a dial steps it, on the touchscreen through a
+custom-menu item, and in the admin UI. A read-only text item for the custom
+menu (#135) is still open.

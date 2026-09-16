@@ -48,8 +48,10 @@ That is enough to triage in minutes.
 | [concepts/integration-api-and-entities.md](concepts/integration-api-and-entities.md) | The entity catalog under the Integration API, MCP server, and plugin entity API: kinds, namespaces, where each entity's state comes from, what each command does internally, per-surface specifics, limits |
 | [concepts/scripting.md](concepts/scripting.md) | The script execution model: sandbox limits and guarantees, one-run-at-a-time, how runs start (actions, lifecycle events, manual), the ctx object, what each dmx call does internally, the store, transform scripts, limits |
 | [concepts/faders-and-continuous-control.md](concepts/faders-and-continuous-control.md) | The continuous-control bus: targets and scaling, the fixture modifier and direct control, per-copy trims, every source's path, the 4 Hz reverse sync, soft takeover, device-side fades, limits |
+| [concepts/custom-menus-and-control-surfaces.md](concepts/custom-menus-and-control-surfaces.md) | Buttons and sliders that carry trigger actions: menu items, live state and execution; surface model (sections, banks, assignments, bindings, appearance); per-transport dispatch rules for MIDI, OSC, Stream Deck, KD-WP8 and the operator view; the active-state rule; hold-to-confirm, auto-repeat and feedback timing; limits |
 
-More concepts will be added. Planned: the plugin SDK by API surface, the Integration API,
+This is the planned set. Further concepts will be added as the product
+grows. Candidates: the plugin SDK by API surface, the Integration API,
 the entity catalog, scripting, faders and the control-value bus, and the
 trigger-to-action dispatch path.
 

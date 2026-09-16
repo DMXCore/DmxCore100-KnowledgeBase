@@ -55,7 +55,9 @@ applies the amount on each repeat.
 
 ### #133 — Stream Deck live Control Value readout
 
-*Open, 2026-09-16. Cited by: control-values.md section 7.*
+*Shipped 2026-09-16 (Core commit 2eb668c0), hardware verification pending.
+Described in custom-menus-and-control-surfaces.md section 4.4 and
+control-values.md section 4.1.*
 
 **Motivation.** Staff stepping a score or a volume from a Stream Deck have
 no readout. Key faces are rendered once from the static label, Control Value

@@ -20,6 +20,8 @@ Read the user documentation first for the operator's view: https://docs.dmxcore.
 
 - [Faders and Continuous Control](concepts/faders-and-continuous-control.md): continuous-action targets (master, zone, fixture intensity and RGB, audio volume, Control Value level); the fixture modifier, per-category control states (NONE, TEMPPRESET, DIRECT, AMBIENT), partial updates and release; fixture-control merge priority against cues; per-copy trims with preview overlay and Solo; source paths (web hub with 25 ms debounce, MIDI and OSC surfaces, Stream Deck dials, value-mode triggers, scripts, integrations, Control Value drives); 0..127 raw scaling; the 4 Hz FixtureControlStatus reverse sync and reconciler; soft takeover rules and 2-step tolerance; device-side fades and snap cancellation; limits and gaps.
 
+- [Custom Menus and Control Surfaces](concepts/custom-menus-and-control-surfaces.md): menus (types Items, small, Faders with knob action; item types Action, SubMenu, Presets, Cues, Slider, Segmented, OSC; live-state binding; execute path with target validation; guest access and direct links); surfaces (types and transports, sections, banks, assignments, MIDI and OSC bindings, appearance, OSC clients); dispatch (bank-then-global resolution; MIDI note, CC and program change; OSC IP-claim precedence and value-as-state toggles; Stream Deck keys, dials, LCD strip, brightness and sleep; KD-WP8 LEDs; browser operator view); the shared active-state rule; hold-to-confirm (1500 ms default, 250 to 10000, exemptions); auto-repeat 400/150 ms; 50 ms continuous feedback throttle; limits and gaps.
+
 ## Reference
 
 - [Tracker cross-reference](issues.md): summaries of the private DMX Core tracker items the concept files cite, by number.

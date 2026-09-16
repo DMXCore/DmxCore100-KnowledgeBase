@@ -382,10 +382,9 @@ private, so quote the number when you talk to DMX Core and read
 | Schedule action types | Cue, Timeline, Preset, Sound, AmbientPreset, OutputToggle, Blackout only. Script is requested. | Partly open, #143 |
 | Plugin trigger payload | `FireAsync(code)` carries no data; the script context payload is empty. | Not planned |
 | Digital input release edge | A digital-input trigger reports one edge direction. Threshold 1 never releases (no Flash or Momentary); threshold 0 produces an inactive edge only, which runs no action. Acting on both "contact closed" and "contact opened" is not possible from one input today. | Open, #139 |
-| Press-and-hold auto-repeat | Stream Deck only, Control Value Up/Down only. | Deferred |
+| Press-and-hold auto-repeat | Stream Deck and OSC surfaces only, Control Value Up/Down only. | Deferred for MIDI and keypads |
 | Hold-to-confirm on the web operator view | A Yes/No dialog instead of a hold. | By design |
 | Value-mode soft takeover | A value trigger jumps the target to the incoming value. | By design |
-| Live value on Stream Deck key faces | See #133. | Open |
 
 ---
 
