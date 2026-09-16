@@ -209,15 +209,17 @@ with no memory of an earlier state (a release seen right after startup
 still switches off). A Flash-style "restore the previous value" was built
 first and dropped: a Control Value is not a light, and a contact should
 simply be mirrored. Offered wherever a release edge exists: input triggers
-(Threshold 0 on a digital input reverses it), Stream Deck keys, OSC
-buttons, the web operator view. MIDI pads and touchscreen menu items have
+(Threshold 0 on a digital input reverses it; a digital input trigger also
+applies the contact's present state when it is saved or the device starts,
+so the value is never left stale), Stream Deck keys, OSC buttons, the web
+operator view. MIDI pads and touchscreen menu items have
 no release path for it and only switch on.
 
 ## Timelines
 
 ### #142 — Timeline play ignores the caller's loop, fades, dimmer and volume
 
-*Open, 2026-09-16. Cited by: [timelines.md](concepts/timelines.md) sections 3.3 and 8.*
+*Closed, shipped 2026-09-16 (streaming engine plus Core). Cited by: [timelines.md](concepts/timelines.md) sections 3.3 and 8.*
 
 **Motivation.** A trigger action, a schedule, and the Integration API all
 carry loop, fade, and volume fields, but a timeline play discards them and
@@ -225,11 +227,13 @@ uses the timeline's own settings. A timeline instance has no volume scale
 at all. Cue and sound targets honor the same fields, so the editor shows
 fields that silently do nothing for timelines.
 
-**Proposal.** Optional loop, fades, dimmer, and volume on the timeline play
-path, passed from trigger actions, schedules, and entity activation; an
-instance-level volume scale applied to every sound the timeline starts.
-Timecode chase keeps forcing loop 1. Until then, hide the ignored fields
-for timeline targets.
+**Resolution.** A play-options object on the timeline play path carries
+fade-in, fade-out, dimmer scale, and volume scale from trigger actions,
+schedules, `dmx.playTimeline(code, options)`, and entity activation; the
+engine timeline gained an instance-level volume applied to every sound it
+starts. Loop is deliberately left to the timeline: the action's loop field
+defaults to 1 and cannot say "keep the timeline's own". Timecode chase
+keeps forcing its own loop.
 
 ## Scripting
 
