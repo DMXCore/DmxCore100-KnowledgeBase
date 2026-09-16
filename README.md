@@ -47,8 +47,9 @@ That is enough to triage in minutes.
 | [concepts/plugin-sdk.md](concepts/plugin-sdk.md) | Plugin roles; packaging and contract versions; lifecycle, timeouts, serial dispatch and the fault budget; settings and state; every host API surface with its hidden rules; which API to pick; testing; limits |
 | [concepts/integration-api-and-entities.md](concepts/integration-api-and-entities.md) | The entity catalog under the Integration API, MCP server, and plugin entity API: kinds, namespaces, where each entity's state comes from, what each command does internally, per-surface specifics, limits |
 | [concepts/scripting.md](concepts/scripting.md) | The script execution model: sandbox limits and guarantees, one-run-at-a-time, how runs start (actions, lifecycle events, manual), the ctx object, what each dmx call does internally, the store, transform scripts, limits |
+| [concepts/faders-and-continuous-control.md](concepts/faders-and-continuous-control.md) | The continuous-control bus: targets and scaling, the fixture modifier and direct control, per-copy trims, every source's path, the 4 Hz reverse sync, soft takeover, device-side fades, limits |
 
-More concepts will be added. Planned: the faders and Control Value bus, the plugin SDK by API surface, the Integration API,
+More concepts will be added. Planned: the plugin SDK by API surface, the Integration API,
 the entity catalog, scripting, faders and the control-value bus, and the
 trigger-to-action dispatch path.
 

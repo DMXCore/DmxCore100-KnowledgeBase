@@ -18,6 +18,8 @@ Read the user documentation first for the operator's view: https://docs.dmxcore.
 
 - [Scripting](concepts/scripting.md): scripts as one-shot sandboxed JavaScript actions; limits (30 s default and 600 s max timeout, 4 MB, 500k statements, recursion 64, 100 log lines, 64 KB store); strict mode, no CLR, catchable host errors, uncatchable kill switches; one run at a time with dropped invocations; run sources (trigger actions, timeline milestones, STARTUP/CUESTARTED/CUEENDED/SCHEDULEFIRED events, manual runs); ctx fields; internal effect of every dmx call (playback, fixtures direct control, Control Values, OSC and MQTT send, schedules, sun times, store write-through); transform-script engine (value and payload globals, 50 ms budget, drop on failure); worked example; limits and gaps.
 
+- [Faders and Continuous Control](concepts/faders-and-continuous-control.md): continuous-action targets (master, zone, fixture intensity and RGB, audio volume, Control Value level); the fixture modifier, per-category control states (NONE, TEMPPRESET, DIRECT, AMBIENT), partial updates and release; fixture-control merge priority against cues; per-copy trims with preview overlay and Solo; source paths (web hub with 25 ms debounce, MIDI and OSC surfaces, Stream Deck dials, value-mode triggers, scripts, integrations, Control Value drives); 0..127 raw scaling; the 4 Hz FixtureControlStatus reverse sync and reconciler; soft takeover rules and 2-step tolerance; device-side fades and snap cancellation; limits and gaps.
+
 ## Reference
 
 - [Tracker cross-reference](issues.md): summaries of the private DMX Core tracker items the concept files cite, by number.
