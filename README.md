@@ -42,8 +42,14 @@ That is enough to triage in minutes.
 | File | Covers |
 |---|---|
 | [concepts/control-values.md](concepts/control-values.md) | Named values on a bus: Level, Selector, Toggle; internal and DSP backends; origins; fades; every surface that reads or writes them |
+| [concepts/triggers-and-actions.md](concepts/triggers-and-actions.md) | The shared trigger action record and its modes; every input trigger type's matching rules; value mode; the dispatch rules; schedules, scripts, and the Integration API as action sources; output events |
 
-More concepts will be added. Planned: input triggers and trigger actions,
-timelines and milestones, the plugin SDK by API surface, the Integration API,
+More concepts will be added. Planned: timelines and milestones, the plugin SDK by API surface, the Integration API,
 the entity catalog, scripting, faders and the control-value bus, and the
 trigger-to-action dispatch path.
+
+## License
+
+The documentation is licensed under
+[CC BY-ND 4.0](https://creativecommons.org/licenses/by-nd/4.0/). See
+[LICENSE](LICENSE) for the notice about the product it describes.

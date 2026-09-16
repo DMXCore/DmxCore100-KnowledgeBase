@@ -8,6 +8,8 @@ Read the user documentation first for the operator's view: https://docs.dmxcore.
 
 - [Control Values](concepts/control-values.md): named values on a bus (Level, Selector, Toggle); internal and DSP plugin backends; origin tags and the "not from me" rule; fades and coalescing intervals; trigger actions, continuous actions, custom menus, drives, Faders page; admin web API, Integration API and MCP entities (cv.CODE), OSC, scripts, Control Value input triggers, timelines, schedules; plugin SDK backend and entity roles; limits and gaps; worked examples.
 
+- [Triggers and Actions](concepts/triggers-and-actions.md): the shared trigger action record (type, playCode, mode, fades, loop, priority); modes Normal, Toggle, Flash, Momentary; input trigger types (UDP, TCP listener and connector, HTTP, OSC, MQTT, Art-Net, sACN, DMX serial, digital input, Control Value, plugin) with exact matching rules and payload syntax; value mode pipeline; dispatch rules (output-off gate, recorder gate, timeline holds, origins); action types; schedules; script play calls; Integration API entity commands; output event types and what each sends; limits and gaps; worked example.
+
 ## Reference
 
 - [Tracker cross-reference](issues.md): summaries of the private DMX Core tracker items the concept files cite, by number.
