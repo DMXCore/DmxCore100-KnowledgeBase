@@ -117,3 +117,71 @@ write-back, the Faders page Controls view, and the web level write endpoint.
 Explicitly out of scope and still open as design directions: MIDI CC output
 feedback for motorized faders and LED rings, a Faders page on the
 touchscreen, and one Control Value driving several targets.
+
+## Triggers and actions
+
+### #137 — HTTP input trigger URLs have no authentication
+
+*Open, 2026-09-16. Cited by: [triggers-and-actions.md](concepts/triggers-and-actions.md) sections 3.4 and 10.*
+
+**Motivation.** An HTTP trigger's path is served by the device web server
+with no authentication. Anyone who can reach the HTTP port can fire every
+HTTP trigger with a GET.
+
+**Proposal.** A per-trigger "require token" option with a generated secret
+checked against a query parameter or header, and/or a host setting that
+makes trigger paths honor the normal API-key authentication. Existing
+triggers stay open on upgrade.
+
+### #138 — Output events of type Art-Net, sACN and DMX Serial send nothing
+
+*Open, 2026-09-16. Cited by: triggers-and-actions.md sections 9 and 10.*
+
+**Motivation.** The three types can be configured in the editor with a
+universe and channel, but sending is not implemented, so the event silently
+does nothing.
+
+**Proposal.** Either implement a one-shot channel pulse routed through the
+normal output path, or hide the types in the editor and make the Test
+button report "not supported" for existing rows.
+
+### #139 — Digital input trigger reports only one edge direction
+
+*Open, 2026-09-16. Cited by: triggers-and-actions.md sections 3.2 and 10.*
+
+**Motivation.** A digital-input trigger with threshold 1 fires on activation
+and never produces a release, so Flash presets and Momentary timelines
+cannot be driven from a contact closure. Threshold 0 produces only the
+inactive edge, which runs no action. DMX-channel triggers already report
+both edges.
+
+**Proposal.** Make digital-input triggers edge-symmetric like DMX triggers,
+and reinterpret the threshold as polarity (1 = active-high, 0 = inverted).
+This is a change in the streaming engine as well as the Core.
+
+### #140 — Schedule end ignores the action's fade-out duration
+
+*Open, 2026-09-16. Cited by: triggers-and-actions.md sections 6 and 10.*
+
+**Motivation.** The fade-out field is editable on a schedule's action but is
+not applied when the schedule ends. Cues, sounds, and timelines stop hard
+(or run to completion); presets release with the default fade.
+
+**Proposal.** Pass the action's fade-out into the schedule end path for
+cue, sound, timeline, preset, and ambient preset. Run-to-completion is
+unchanged.
+
+### #141 — TCP output event only sends over a TCP Connector trigger's connection; UDP/TCP output payloads are literal text
+
+*Open, 2026-09-16. Cited by: triggers-and-actions.md sections 9 and 10.*
+
+**Motivation.** A TCP output event reuses the socket a TCP Connector input
+trigger holds to the same host and port. Without such a trigger nothing is
+sent, nothing is logged, and the Test button reports success. UDP and TCP
+output payloads are also sent as literal UTF-8 text, so the hex and escape
+syntax accepted by trigger payloads does not work on the output side.
+
+**Proposal.** Open a connection for the output event when no trigger holds
+one, reuse an existing one when present, report send failures to the Test
+button and the log, and parse output payloads with the same hex and escape
+rules as trigger payloads.

@@ -370,18 +370,18 @@ private, so quote the number when you talk to DMX Core and read
 | Several actions per trigger | One action per trigger, key, menu item, or schedule. Play a timeline for several things. | By design |
 | Actions on the falling edge | Only Flash (preset) and Momentary (timeline) react to release. A "stop cue when the contact opens" needs a second trigger with the stop payload and a StopPlayback or FadeOut action. | Not planned |
 | Conditions, counters, debouncing | No per-trigger conditions or rate limiting. Use a Script action. | Not planned |
-| Authenticated HTTP triggers | Trigger URL paths accept any caller. | Not planned |
+| Authenticated HTTP triggers | Trigger URL paths accept any caller. Asks for a per-trigger token or an API-key requirement. | Open, #137 |
 | UDP or TCP value mode | Only HTTP, OSC, MQTT, and Control Value carry a value. | Not planned |
 | MQTT wildcards in trigger topics | Exact topic only. | Not planned |
 | Regex or partial-field matching | UDP is prefix match, TCP is substring match, OSC and MQTT are exact text. No regex, no numeric comparison. Use value mode with a transform script for numeric thresholds. | Not planned |
-| Output events over Art-Net, sACN, DMX Serial | Editor offers the types; nothing is sent. | Open, not scheduled |
+| Output events over Art-Net, sACN, DMX Serial | Editor offers the types; nothing is sent. | Open, #138 |
 | HTTP output event with POST, body, or headers | GET only. Use a Script action with `osc.send` or `mqtt.publish`, or a plugin. | Not planned |
-| Hex or escaped bytes in UDP and TCP output payloads | Trigger payloads accept hex, output payloads are plain text. | Not planned |
-| TCP output without a matching TCP Connector trigger | The output rides an input trigger's connection. | By design |
-| Schedule fade-out at end | `fadeOutDurationMS` is not applied when a schedule ends; the item stops or runs to completion. | Open, not scheduled |
+| Hex or escaped bytes in UDP and TCP output payloads | Trigger payloads accept hex, output payloads are plain text. | Open, #141 |
+| TCP output without a matching TCP Connector trigger | The output rides an input trigger's connection; without one nothing is sent and the Test button still reports success. | Open, #141 |
+| Schedule fade-out at end | `fadeOutDurationMS` is not applied when a schedule ends; the item stops or runs to completion. | Open, #140 |
 | Schedule action types | Cue, Timeline, Preset, Sound, AmbientPreset, OutputToggle, Blackout only. | By design |
 | Plugin trigger payload | `FireAsync(code)` carries no data; the script context payload is empty. | Not planned |
-| Digital input release edge | A digital-input trigger reports one edge direction. Threshold 1 never releases (no Flash or Momentary); threshold 0 produces an inactive edge only, which runs no action. Acting on both "contact closed" and "contact opened" is not possible from one input today. | Quirk, request if needed |
+| Digital input release edge | A digital-input trigger reports one edge direction. Threshold 1 never releases (no Flash or Momentary); threshold 0 produces an inactive edge only, which runs no action. Acting on both "contact closed" and "contact opened" is not possible from one input today. | Open, #139 |
 | Press-and-hold auto-repeat | Stream Deck only, Control Value Up/Down only. | Deferred |
 | Hold-to-confirm on the web operator view | A Yes/No dialog instead of a hold. | By design |
 | Value-mode soft takeover | A value trigger jumps the target to the incoming value. | By design |
