@@ -368,7 +368,7 @@ private, so quote the number when you talk to DMX Core and read
 | Gap | Detail | Status |
 |---|---|---|
 | Several actions per trigger | One action per trigger, key, menu item, or schedule. Play a timeline for several things. | By design |
-| Actions on the falling edge | Only Flash (preset) and Momentary (timeline) react to release. A "stop cue when the contact opens" needs a second trigger with the stop payload and a StopPlayback or FadeOut action. | Not planned |
+| Actions on the falling edge | Only Flash (preset) and Momentary (timeline) react to release. A "stop cue when the contact opens" needs a second trigger with the stop payload and a StopPlayback or FadeOut action. A Control Value Set action in Flash mode sets on press and restores the previous value on release (#144, shipped 2026-09-16), so a contact can hold a Control Value On only while closed. | Not planned in general; Control Value Set: closed, #144 |
 | Conditions, counters, debouncing | No per-trigger conditions or rate limiting. Use a Script action. | Not planned |
 | Authenticated HTTP triggers | Trigger URL paths accept any caller. Asks for a per-trigger token or an API-key requirement. | Open, #137 |
 | UDP or TCP value mode | Only HTTP, OSC, MQTT, and Control Value carry a value. | Not planned |
