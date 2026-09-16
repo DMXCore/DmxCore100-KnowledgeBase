@@ -98,17 +98,17 @@ Guarantees:
 A `Script` trigger action (section 4 of the Triggers and Actions document)
 queues the run and returns immediately; the trigger's dispatch never waits
 for the script. Sources: input triggers, control-surface keys, custom-menu
-items, and timeline `SCRIPT` milestones. Schedules cannot run a script
-directly (a schedule's supported action types do not include Script); use a
-schedule that plays a timeline with a Script milestone, or the
-`SCHEDULEFIRED` event.
+items, timeline `SCRIPT` milestones, and schedules (#143, shipped
+2026-09-16): a schedule's Script action runs once at the start time with
+source `SCHEDULE` and the schedule code; nothing runs at the end time, so a
+closing script subscribes to the `SCHEDULEENDED` event instead.
 
 The invocation context arrives as `ctx`:
 
 | Field | Value |
 |---|---|
-| `ctx.trigger.source` | The input trigger's type in uppercase (`UDP`, `MQTT`, `OSC`, `HTTP`, `CONTROLVALUE`, ...), `TRIGGER` when fired from a surface, menu, or timeline, `MANUAL` from the editor, `EVENT` for lifecycle events. |
-| `ctx.trigger.code` | The input trigger's code, when fired by one. |
+| `ctx.trigger.source` | The input trigger's type in uppercase (`UDP`, `MQTT`, `OSC`, `HTTP`, `CONTROLVALUE`, ...), `SCHEDULE` when fired by a schedule's Script action, `TRIGGER` when fired from a surface, menu, or timeline, `MANUAL` from the editor, `EVENT` for lifecycle events. |
+| `ctx.trigger.code` | The input trigger's code, or the schedule's code, when fired by one. |
 | `ctx.payload` | The raw payload of the input trigger message where the source has one (UDP, TCP, HTTP body or query, OSC argument text, MQTT payload); null otherwise. The editor's Run button can supply a test payload. |
 | `ctx.event` | `{ name, code }` for lifecycle events; null otherwise. |
 | `ctx.now` | `{ hour, minute, minutesSinceMidnight, weekday, iso }` in the device's display time zone, for comparison against `dmx.sunrise()` and `dmx.sunset()`. |
@@ -125,6 +125,7 @@ A script with entries in `runOn` is started by the device itself:
 | `CUESTARTED` | A top-level cue starts. Cues inside a timeline do not count. | The cue code |
 | `CUEENDED` | A top-level cue stops. | The cue code |
 | `SCHEDULEFIRED` | A schedule runs its action. | The schedule code |
+| `SCHEDULEENDED` | A schedule ends: its end time is reached, or a higher priority schedule takes over. A schedule without an end time never ends. | The schedule code |
 
 Cue events are derived by diffing the playback status ticks, so they are
 edge events per cue code, not per playback instance. Event dispatch never
@@ -281,7 +282,7 @@ quote the number when you talk to DMX Core and read
 | Long-lived scripts | No timers, no event subscriptions from inside a script, no background loop beyond the timeout. A "listener" is an input trigger with a Script action. | By design |
 | Receiving OSC or MQTT in a script | Send only. | By design |
 | HTTP requests | No `dmx.http`. Use an HTTP output event (GET only) or MQTT. | Deferred, planned as admin opt-in |
-| Schedules running scripts directly | Script is not a schedule action type; the editor offers it but the schedule logs it as unsupported. Asks for Script as a schedule start target, and possibly a schedule-ended event. | Open, #143 |
+| Schedules running scripts directly | Fixed: Script is a schedule action type (runs at the start, section 4.1) and `SCHEDULEENDED` is a lifecycle event (section 4.2). | Closed, #143 |
 | Timeline and hold events | No `TIMELINESTARTED`, `TIMELINEENDED`, or hold lifecycle events. | Not planned |
 | Cue events for timeline children | `CUESTARTED` and `CUEENDED` are top-level only. | By design |
 | Fade on `setFixture` | Instant; fade by stepping. | Not planned |

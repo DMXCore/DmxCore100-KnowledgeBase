@@ -268,8 +268,9 @@ Behavior:
   set; a day whose sun event cannot be resolved is skipped. Sun times are
   clamped to the same local day.
 - **Supported action types:** `Cue`, `Timeline`, `Preset`, `Sound`,
-  `AmbientPreset`, `OutputToggle`, `Blackout`. Any other type logs a warning
-  and does nothing.
+  `AmbientPreset`, `OutputToggle`, `Blackout`, `Script` (runs once at the
+  start with source `SCHEDULE`; #143, shipped 2026-09-16). Any other type
+  logs a warning and does nothing.
 - **Start** plays the item with `fadeInDurationMS`, `loop`, `dimmerScale`,
   `volume`. Playing items are held as schedule-owned players.
 - **End** stops the item. With `runToCompletion` a cue, sound, or timeline
@@ -281,7 +282,8 @@ Behavior:
   when a schedule with a higher priority number starts before its end time.
 - Schedules do not run while the recorder is active, while the schedule is
   open in the editor, or during a snooze set from the UI.
-- The `ScheduleFired` script event fires on every start.
+- The `ScheduleFired` script event fires on every start, `ScheduleEnded` on
+  every end (end time reached, or a higher priority schedule took over).
 
 ---
 
