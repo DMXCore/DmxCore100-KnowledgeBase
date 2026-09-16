@@ -12,6 +12,8 @@ Read the user documentation first for the operator's view: https://docs.dmxcore.
 
 - [Timelines](concepts/timelines.md): timeline fields (duration, loop, dimmer, fades, timecode settings); milestone types (cue, sound, preset, output event, Control Value, script, hold, comment) and their fields; track recomputation; in/out point combination; how an instance is built; play, jump, stop, pause, resume, release; caller parameters that are ignored; playback layers; Hold milestone rules (sustained loops, release paths, latches, named holds, timeout); Art-Net timecode chase modes and settings; limits and gaps; worked example.
 
+- [Plugin SDK](concepts/plugin-sdk.md): plugin roles (event source, mirror, action target, Control Value backend, output protocol, importer, OSC endpoint); packaging, manifest, registry, contract version history 1.0 to 1.12; lifecycle (30 s initialize, 10 s shutdown, hot reload, safe mode), serial dispatch, 20-fault budget and exemptions; settings, state, device identity, connection state; API-selection table; each surface (Triggers, Entities with 150 ms coalescing and echo, MQTT availability topics, Actions 10 s timeout, Control Value backends, Outputs session model and 2 s backoff, Imports frame sink, OSC precedence and 64-subscription limit, mDNS, Playback); testing host; limits and gaps.
+
 ## Reference
 
 - [Tracker cross-reference](issues.md): summaries of the private DMX Core tracker items the concept files cite, by number.

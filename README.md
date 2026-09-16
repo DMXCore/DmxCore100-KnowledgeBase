@@ -44,8 +44,9 @@ That is enough to triage in minutes.
 | [concepts/control-values.md](concepts/control-values.md) | Named values on a bus: Level, Selector, Toggle; internal and DSP backends; origins; fades; every surface that reads or writes them |
 | [concepts/triggers-and-actions.md](concepts/triggers-and-actions.md) | The shared trigger action record and its modes; every input trigger type's matching rules; value mode; the dispatch rules; schedules, scripts, and the Integration API as action sources; output events |
 | [concepts/timelines.md](concepts/timelines.md) | Timeline and milestone fields; how an instance is built; play, stop, pause, resume; layers; Hold milestones and release paths; timecode chase; which caller parameters apply |
+| [concepts/plugin-sdk.md](concepts/plugin-sdk.md) | Plugin roles; packaging and contract versions; lifecycle, timeouts, serial dispatch and the fault budget; settings and state; every host API surface with its hidden rules; which API to pick; testing; limits |
 
-More concepts will be added. Planned: the plugin SDK by API surface, the Integration API,
+More concepts will be added. Planned: the Integration API and entity catalog, the plugin SDK by API surface, the Integration API,
 the entity catalog, scripting, faders and the control-value bus, and the
 trigger-to-action dispatch path.
 
