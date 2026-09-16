@@ -16,6 +16,8 @@ Read the user documentation first for the operator's view: https://docs.dmxcore.
 
 - [Integration API and the Entity Catalog](concepts/integration-api-and-entities.md): the one catalog projected by the Integration API (HTTP + WebSocket), the MCP server, and the plugin entity API; kinds (scene, switch, level, select, number, button, sensor); namespaces and listing rules; catalog change debounce (500 ms); state sources per entity and the 150 ms coalescing and echo rules; the internal effect of every command including playback defaults for cue and sound activate; Integration API limits and resync; MCP tool mapping; Home Assistant mapping; worked Companion example; limits and gaps.
 
+- [Scripting](concepts/scripting.md): scripts as one-shot sandboxed JavaScript actions; limits (30 s default and 600 s max timeout, 4 MB, 500k statements, recursion 64, 100 log lines, 64 KB store); strict mode, no CLR, catchable host errors, uncatchable kill switches; one run at a time with dropped invocations; run sources (trigger actions, timeline milestones, STARTUP/CUESTARTED/CUEENDED/SCHEDULEFIRED events, manual runs); ctx fields; internal effect of every dmx call (playback, fixtures direct control, Control Values, OSC and MQTT send, schedules, sun times, store write-through); transform-script engine (value and payload globals, 50 ms budget, drop on failure); worked example; limits and gaps.
+
 ## Reference
 
 - [Tracker cross-reference](issues.md): summaries of the private DMX Core tracker items the concept files cite, by number.
