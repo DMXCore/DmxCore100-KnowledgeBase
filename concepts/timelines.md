@@ -149,19 +149,19 @@ Stop and Pause still work.
 timecode in range (section 6). The web API returns an error response with
 the reason; triggers and schedules log a warning and skip.
 
-### 3.3 Play parameters: the caller's fades, dimmer and volume apply, the loop is the timeline's
+### 3.3 Play parameters: the caller's settings apply, unset ones stay the timeline's
 
 A trigger action, schedule, script call, or Integration API `activate`
 carries loop, fade-in, fade-out, dimmer, and volume fields. For a
-**timeline** target (#142, shipped 2026-09-16): `fadeInDurationMS` and
-`fadeOutDurationMS` replace the timeline's own fades for that play when
-non-zero (0 keeps the timeline's); `dimmerScale` multiplies the timeline's
-`dimmer`; `volume` is an instance-level scale on every sound the timeline
-starts, multiplied with each sound milestone's own level (1.0 = as
-authored). The caller's **loop is not applied**: a trigger action's loop
-field defaults to 1 and cannot express "keep the timeline's own", so the
-timeline's `loop` always stands (section 8). Timecode chase still forces
-its own loop.
+**timeline** target (#142, shipped 2026-09-16): `loop` replaces the
+timeline's own loop when set (the field is nullable; null keeps the
+timeline's, and existing timeline actions were migrated to null);
+`fadeInDurationMS` and `fadeOutDurationMS` replace the timeline's own fades
+when non-zero (0 keeps the timeline's); `dimmerScale` multiplies the
+timeline's `dimmer`; `volume` is an instance-level scale on every sound the
+timeline starts, multiplied with each sound milestone's own level (1.0 = as
+authored). Timecode chase still forces its own loop. For cue and sound
+targets a null loop follows the device's playback default.
 
 The one caller parameter that matters is the trigger action **mode**:
 Normal plays, and re-pressing while the timeline is parked at an unnamed
@@ -352,7 +352,7 @@ private, so quote the number when you talk to DMX Core and read
 
 | Gap | Detail | Status |
 |---|---|---|
-| Caller play parameters | Fixed for fades, dimmer, and volume (section 3.3). The caller's loop is still not applied to a timeline: the action's loop field has no "unset" value. | Closed, #142 (loop: by design for now) |
+| Caller play parameters | Fixed: loop, fades, dimmer, and volume from the caller apply; unset ones keep the timeline's (section 3.3). | Closed, #142 |
 | Nested timelines | A milestone cannot play another timeline. | Not planned |
 | Script lifecycle events for timelines | Scripts can subscribe to cue started and ended, not to a timeline starting, ending, or holding. Put a Script milestone at 0 s and at the end instead. | Not planned |
 | Position feed for integrations | No per-timeline position or state over the Integration API, MCP, or plugin entity API beyond the now-playing text. | Not planned |
@@ -362,4 +362,4 @@ private, so quote the number when you talk to DMX Core and read
 | Named markers | Jump is by position in milliseconds only; there is no jump-to-marker. | Not planned |
 | Stored track ids | `trackId` on cue, sound, and preset milestones is recomputed at play; the stored value is a hint for the editor only. | By design |
 | Priority and group fields | Stored on the timeline but not consulted by playback. | Informational |
-| Play parameters for schedules | A schedule's fades, dimmer, and volume apply to a timeline; its loop does not (the timeline's own stands). | Part of #142 |
+| Play parameters for schedules | A schedule's loop, fades, dimmer, and volume apply to a timeline like any other caller's. | Part of #142 |

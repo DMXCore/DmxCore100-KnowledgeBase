@@ -231,9 +231,10 @@ fields that silently do nothing for timelines.
 fade-in, fade-out, dimmer scale, and volume scale from trigger actions,
 schedules, `dmx.playTimeline(code, options)`, and entity activation; the
 engine timeline gained an instance-level volume applied to every sound it
-starts. Loop is deliberately left to the timeline: the action's loop field
-defaults to 1 and cannot say "keep the timeline's own". Timecode chase
-keeps forcing its own loop.
+starts. The trigger action's loop field became nullable so "not set" is
+expressible: null keeps a timeline's own loop (existing timeline actions
+were migrated to null) and follows the device default for a cue or sound.
+Timecode chase keeps forcing its own loop.
 
 ## Scripting
 
