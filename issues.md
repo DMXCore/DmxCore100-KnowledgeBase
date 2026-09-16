@@ -193,7 +193,7 @@ one, reuse an existing one when present, report send failures to the Test
 button and the log, and parse output payloads with the same hex and escape
 rules as trigger payloads.
 
-### #144 — Control Value Set action in Flash mode: write on press, restore on release
+### #144 — Control Value action that follows a momentary input
 
 *Closed, shipped 2026-09-16 (Core). Cited by: triggers-and-actions.md section 10.*
 
@@ -202,13 +202,15 @@ while pressed needs two triggers: a rising-edge trigger with Set On and an
 inverted one with Set Off. Only Flash presets and Momentary timelines react
 to a release edge; a Control Value action ignores it.
 
-**Resolution.** Flash mode on a Control Value Set action: the rising edge
-sets the value, the falling edge restores what the Control Value had before
-the press (a Level's level, a Selector's choice, a Counter's number; a
-Toggle with no known prior state goes off). Overlapping presses restore
-what the first press found. Offered wherever a release edge exists: input
-triggers, Stream Deck keys, OSC buttons, the web operator view. Touchscreen
-menu items have no release and stay Normal.
+**Resolution.** A new Control Value operation `Follow` for Toggle kinds:
+the rising edge switches the Toggle on, the falling edge switches it off,
+with no memory of an earlier state (a release seen right after startup
+still switches off). A Flash-style "restore the previous value" was built
+first and dropped: a Control Value is not a light, and a contact should
+simply be mirrored. Offered wherever a release edge exists: input triggers
+(Threshold 0 on a digital input reverses it), Stream Deck keys, OSC
+buttons, the web operator view. MIDI pads and touchscreen menu items have
+no release path for it and only switch on.
 
 ## Timelines
 
