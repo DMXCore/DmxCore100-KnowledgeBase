@@ -1,0 +1,14 @@
+# DMX Core 100 Knowledge Base
+
+> Under-the-covers documentation of the DMX Core 100 lighting controller for integrators, plugin authors, and AI agents planning advanced integrations without source access. Each concept file states the software commit it was verified against and ends with a table of limits and gaps to request from DMX Core.
+
+Read the user documentation first for the operator's view: https://docs.dmxcore.com/dmx-core-100
+
+## Concepts
+
+- [Control Values](concepts/control-values.md): named values on a bus (Level, Selector, Toggle); internal and DSP plugin backends; origin tags and the "not from me" rule; fades and coalescing intervals; trigger actions, continuous actions, custom menus, drives, Faders page; admin web API, Integration API and MCP entities (cv.CODE), OSC, scripts, Control Value input triggers, timelines, schedules; plugin SDK backend and entity roles; limits and gaps; worked examples.
+
+## Reference
+
+- [Tracker cross-reference](issues.md): summaries of the private DMX Core tracker items the concept files cite, by number.
+- [README](README.md): how to use this repository and how to request a gap.
