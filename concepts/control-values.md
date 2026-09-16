@@ -2,8 +2,8 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `cc6ae738`
-(2026-09-16), Plugin SDK contract 1.11.
+**Verified against:** DMX Core 100 software `main` at commit `e36880c2`
+(2026-09-16), Plugin SDK contract 1.12.
 **User-facing documentation:** <https://docs.dmxcore.com/dmx-core-100/integrations/control-values>
 
 This document describes how Control Values behave under the covers: the data
@@ -16,13 +16,14 @@ view; read this when you need to predict what the system will do.
 ## 1. Mental model
 
 A Control Value is a **named value on a bus**. It has a short uppercase
-**code** (for example `VOL1`, `SRC`, `HOME_SCORE`) and one of three kinds:
+**code** (for example `VOL1`, `SRC`, `HOME_SCORE`) and one of four kinds:
 
 | Kind | Holds | Typical use |
 |---|---|---|
 | Level | A continuous position 0.0 to 1.0 | Zone volume, house dimmer |
 | Selector | One of an ordered list of named choices | Audio source, mode select |
 | Toggle | On or off | Mute, "game mode" flag |
+| Counter | A whole number between a minimum and a maximum | Home or away score, queue number |
 
 Every control in the system that can address the code shares the same value:
 control-surface knobs and keys, custom-menu sliders and buttons, the Faders
@@ -44,8 +45,8 @@ What a Control Value is **not**:
 
 - It is not a DMX channel and has no direct DMX output. A Level Control Value
   can *drive* a lighting target (section 4.4), but that is an explicit binding.
-- It is not an integer counter. The only numeric kind is Level, a 0..1 fraction
-  (section 7).
+- It is not a general variable. Level is a 0..1 fraction and Counter is a
+  bounded integer; there is no text or floating-point kind (section 7).
 - It is not a trigger by itself. A separate Control Value input trigger
   watches it and fires actions (section 5.5).
 
@@ -65,13 +66,16 @@ editor.
 | `code` | string | all | Stable identifier, unique. Matched case-insensitively everywhere. Convention is uppercase. |
 | `name` | string | all | Display name. |
 | `enabled` | bool | all | Disabled values are not loaded into the runtime and do not appear in the entity catalog. |
-| `kind` | `"LEVEL"`, `"SELECTOR"`, `"TOGGLE"` | all | The kind. Uppercase string on the wire. |
+| `kind` | `"LEVEL"`, `"SELECTOR"`, `"TOGGLE"`, `"COUNTER"` | all | The kind. Uppercase string on the wire. |
 | `pluginName` | string | all | Backend name: `INTERNAL`, `SYMETRIX`, `QSYS`, or any name a plugin registered. |
 | `controlId` | string | all | Backend-specific controller id the Core **writes** to. For Symetrix this is the controller number from Composer. For the internal backend it is any string. |
 | `statusControlId` | string, optional | all | Controller id the Core **reads** state from when it differs from the write id. Push subscriptions and last-known values key off this id. Null means status comes from `controlId`. |
 | `stepSize` | double, default 0.05 | Level | Fraction of full range that one Up or Down step moves. |
 | `wrapSelector` | bool, default true | Selector | Up past the last choice wraps to the first, Down from the first wraps to the last. False clamps at the ends. |
 | `choices` | array of `{ name, value }` | Selector | Ordered choices. `value` is the raw backend value for that position. |
+| `counterMin`, `counterMax` | int, default 0 and 100 | Counter | The range. A reversed range is tolerated. |
+| `counterStep` | int, default 1 | Counter | How much one Up or Down moves the value. |
+| `counterWrap` | bool, default false | Counter | Up past the maximum wraps to the minimum and Down below the minimum wraps to the maximum. Default clamps, unlike Selector. |
 | `muteControlId` | string, optional | Level | Linked mute controller on the same backend. Enables the "muted" overlay on faders. |
 | `unmuteOnLevelChange` | bool | Level | With a linked mute: any level write unmutes first. |
 | `drives` | continuous action, optional | Level | The lighting or audio target this value drives (section 4.4). Null means it drives nothing. |
@@ -91,10 +95,11 @@ API's `status()` exposes.
 | Field | Type | Meaning |
 |---|---|---|
 | `code` | string | The Control Value code. |
-| `kind` | `"LEVEL"`, `"SELECTOR"`, `"TOGGLE"` | The kind. |
-| `value` | double | Level: 0..1. Toggle: 0 or 1. Selector: the raw backend value normalized to 0..1. Use `choiceIndex` or `choiceName` for the resolved position. |
+| `kind` | `"LEVEL"`, `"SELECTOR"`, `"TOGGLE"`, `"COUNTER"` | The kind. |
+| `value` | double | Level: 0..1. Toggle: 0 or 1. Selector: the raw backend value normalized to 0..1. Counter: the integer's 0..1 position within its range. Use `choiceIndex`, `choiceName`, or `number` for the resolved value. |
 | `choiceIndex` | int, nullable | Selector only. Nearest choice index. |
 | `choiceName` | string, nullable | Selector only. Nearest choice name. |
+| `number` | int, nullable | Counter only. The current integer. |
 | `muted` | bool, nullable | Level with a linked mute: whether the mute is on. Null when there is no linked mute or its state is unknown. |
 | `hasValue` | bool | False until a value has been received from the backend or written locally. UIs show "unknown" rather than 0. |
 | `origins` | array of string | Every origin tag that wrote the value since the last publish (section 3.4). Empty for snapshots not produced by a write, such as the initial list. |
@@ -119,16 +124,27 @@ API's `status()` exposes.
 
 Every write path resolves to one of these operations on the runtime.
 
-| Operation | Level | Selector | Toggle |
-|---|---|---|---|
-| Set `value` | Parse a number. `0..1` is taken as a fraction; anything above 1, or a value ending in `%`, is divided by 100. Clamped to 0..1. Optional fade (below). | Choice name (case-insensitive) or 0-based index. | `on`, `true`, `1` mean on; anything else means off. |
-| Up | Current + `stepSize`, clamped to 1. | Next choice, wrapping or clamping per `wrapSelector`. | Turn on. |
-| Down | Current - `stepSize`, clamped to 0. | Previous choice. | Turn off. |
-| Toggle | Not applicable. | Not applicable. | Flip. |
+| Operation | Level | Selector | Toggle | Counter |
+|---|---|---|---|---|
+| Set `value` | Parse a number. `0..1` is taken as a fraction; anything above 1, or a value ending in `%`, is divided by 100. Clamped to 0..1. Optional fade (below). | Choice name (case-insensitive) or 0-based index. | `on`, `true`, `1` mean on; anything else means off. | Parse a number, round to an integer, clamp to the range. An absolute Set never wraps. |
+| Up | Current + `stepSize`, clamped to 1. | Next choice, wrapping or clamping per `wrapSelector`. | Turn on. | Current + `counterStep`, clamped or wrapped per `counterWrap`. |
+| Down | Current - `stepSize`, clamped to 0. | Previous choice. | Turn off. | Current - `counterStep`, clamped or wrapped. |
+| Toggle | Not applicable. | Not applicable. | Flip. | Not applicable. |
 
 Selector Up or Down with no known current position steps to the first choice
 (Up) or stays on index 0 (Down). A Selector with no configured choices logs a
-warning and does nothing.
+warning and does nothing. A Counter with no known value steps from its
+minimum.
+
+**Step amount.** Up and Down accept an optional **amount** that replaces the
+Control Value's own step for that one press, milestone, or script call. It is
+carried on the trigger action (`controlValueStepAmount`), the timeline
+milestone, and the script `up` and `down` calls. Meaning by kind: Level, a
+0..1 delta, or a percent when its magnitude is above 1; Counter, an integer;
+Selector, a number of choices. The amount is signed, so a negative amount
+runs the other way. Clamp and wrap rules are unchanged. Stream Deck
+press-and-hold repeat applies the amount on every repeat. A "touchdown" key
+is Up with amount 6; a plain "+1" key leaves the amount empty.
 
 ### 3.2 Fades
 
@@ -231,7 +247,8 @@ surface keys, input trigger actions, custom-menu action items, and schedules.
 | Action type | `ControlValue` |
 | Play code | The Control Value code |
 | Control Value operation | `Set`, `Up`, `Down`, `Toggle` |
-| Control Value set value | For Set only: a level, a choice name or index, or on/off |
+| Control Value set value | For Set only: a level, a choice name or index, on/off, or an integer |
+| Control Value step amount | For Up and Down only, optional: replaces the Control Value's own step (section 3.1) |
 
 No fade. The action's fade-in and fade-out fields do not apply to Control
 Value actions.
@@ -335,9 +352,11 @@ rate limits.
 | Level | `level` | `level` 0..1 | `setLevel` |
 | Toggle | `switch` | `isOn` | `turnOn`, `turnOff`, `toggle` |
 | Selector | `select` | `choice` (canonical choice name); catalog carries `choices` | `setChoice` |
+| Counter | `number` | `number` (integer); catalog carries `min`, `max`, `step` | `setNumber` (rounded and clamped to the range) |
 
 Writes carry origin `INTEGRATION`. There is no Up, Down, or fade over this
-surface. Compute the next value client-side and `setLevel` or `setChoice`.
+surface. Compute the next value client-side and `setLevel`, `setChoice`, or
+`setNumber`.
 State changes are pushed over the Integration API WebSocket, coalesced at
 150 ms. The MCP server exposes the same entities through its tools.
 
@@ -348,8 +367,9 @@ State changes are pushed over the Integration API WebSocket, coalesced at
 | `/dmxcore/control/{code}` | In | Float 0..1. Sets a **Level** Control Value directly with origin `OSC`. No surface or trigger configuration needed. |
 | `/dmxcore/control/{code}` | Out | Float 0..1. Echoed to connected OSC clients on every Level status publish, so a TouchOSC fader tracks. The code is lowercased in the outgoing address. |
 
-Selector and Toggle are not addressable through this shortcut. Use an OSC
-control surface or an OSC input trigger with a Control Value action.
+Selector, Toggle, and Counter are not addressable through this shortcut and
+are not echoed. Use an OSC control surface or an OSC input trigger with a
+Control Value action.
 
 ### 5.4 Scripts
 
@@ -357,10 +377,11 @@ Scripts get a `dmx.controlValue` object.
 
 | Call | Behavior |
 |---|---|
-| `get(code)` | Returns the 0..1 value, or null when unknown or not yet reported. For Selector this is the normalized raw value; use `status()` for the choice. |
+| `get(code)` | Returns the 0..1 value, or null when unknown or not yet reported. For a Counter it returns the integer, not the position. For Selector this is the normalized raw value; use `status()` for the choice. |
 | `set(code, value, fadeMs = 0)` | Boolean → Toggle on/off. Number or string → Set (section 3.1). `fadeMs` > 0 ramps a Level. |
-| `up(code)`, `down(code)`, `toggle(code)` | The corresponding operation. |
-| `status(code)` | `{ kind, value, choiceIndex, choiceName, muted }`, or null for an unknown code. `value` is null until known. |
+| `up(code, amount?)`, `down(code, amount?)` | Step, optionally by `amount` (section 3.1). |
+| `toggle(code)` | Toggle only. |
+| `status(code)` | `{ kind, value, choiceIndex, choiceName, number, muted }`, or null for an unknown code. `value` is null until known. |
 
 All script writes carry origin `SCRIPT`.
 
@@ -376,6 +397,7 @@ its action. The trigger's `address` field holds the code.
 | Level | Value rises to or above `threshold` percent (0–100). | Value drops below the threshold. |
 | Selector | The choice named in `startPayload` (name or index) becomes active. | The choice in `stopPayload` becomes active, or, when `stopPayload` is empty, any other choice. |
 | Toggle | Treated as a Level with the threshold applied to 0 or 1. | Same. |
+| Counter | The threshold percent is applied to the integer's position within its range: fires when the value reaches or passes that fraction of min..max. | Drops below. |
 
 **Value mode:** the trigger passes the live 0..1 value to its continuous
 action on every foreign update. This is how a DSP fader drives the master
@@ -397,9 +419,9 @@ Rules that matter:
 ### 5.6 Timelines
 
 A timeline milestone of type `ControlValue` carries the code, the operation,
-and the set value, exactly like a trigger action. The milestone's **duration**
-is the fade time for a Level Set, so "fade to 40 % over 1.5 s" is one
-milestone. Origin `TIMELINE`. Milestones are placed on tracks like any other
+the set value, and the optional step amount, exactly like a trigger action.
+The milestone's **duration** is the fade time for a Level Set, so "fade to
+40 % over 1.5 s" is one milestone. Origin `TIMELINE`. Milestones are placed on tracks like any other
 event.
 
 ### 5.7 Schedules
@@ -425,7 +447,7 @@ The plugin implements:
 |---|---|
 | `TrueValue`, `FalseValue` | Raw strings meaning on and off for toggle-style controls, protocol dependent (for example `"1"` and `"0"`, or `"65535"` and `"0"`). |
 | `SetLevelAsync(controlId, level 0..1)` | A Level write. |
-| `SetRawValueAsync(controlId, rawString)` | A Selector choice value or a Toggle value. |
+| `SetRawValueAsync(controlId, rawString)` | A Selector choice value, a Toggle value, or a Counter integer. A Counter's raw value **is** the integer, with no 0..65535 scaling; push it back unchanged. |
 | `RegisterControlIdsAsync(controlIds)` | The complete set of **status** ids that need live feedback. Replaces any previous set. Subscribe them on the external device. |
 | `GetControlData(controlId)` | Synchronous. Return cached last-known data or null. Do not query the device here. |
 
@@ -441,13 +463,17 @@ A slow or throwing backend does not stall other plugins or the Core.
 Full-scale convention: the Core assumes a raw range of 0..65535 for a
 full-scale level when it must synthesize a raw value, matching the Symetrix
 convention. Backends with other ranges should compute `Position` themselves.
+For a Counter the Core ignores the pushed `Position` and derives it from the
+integer and the Counter's own range.
 
 ### 6.2 Observing or writing a Control Value the plugin does not own
 
 Use the entity API. Enabled Control Values appear as `cv.{CODE}` entities
 with the kinds in section 5.2. Subscribe to state changes (coalesced at
-150 ms) and execute `setLevel`, `turnOn`, `turnOff`, `toggle`, or
-`setChoice`. Writes carry origin `INTEGRATION`.
+150 ms) and execute `setLevel`, `turnOn`, `turnOff`, `toggle`, `setChoice`,
+or `setNumber`. The `number` entity kind, its `min`, `max`, `step`, and the
+`setNumber` command require SDK contract 1.12. Writes carry origin
+`INTEGRATION`.
 
 A plugin that needs a value it can both read and write, with no external
 device, should have the operator create an **internal** Control Value and
@@ -466,8 +492,8 @@ quote the number when you talk to DMX Core and read
 
 | Gap | Detail | Status |
 |---|---|---|
-| Integer or counter kind | Kinds are Level (0..1), Selector, Toggle. A score or count has to be encoded as a Level fraction or a Selector with one choice per number. Asks for a `Counter` kind with min, max, step, and clamp-or-wrap, mapped to a `number` entity for the Integration API and Home Assistant. | Open, #131 |
-| Step by a signed amount | Up and Down always step by the Control Value's own `stepSize`. A "+6" key needs a script that calls `up()` six times, or a plugin that computes and Sets. Asks for an optional step amount on the action, the timeline milestone, and the script API. | Open, #132 |
+| Home Assistant `number` entity for Counters | The Core exposes Counters as `number` entities since SDK 1.12; the Home Assistant plugin has to be updated to map them. Until then a Counter is not visible in Home Assistant. | Follow-up to #131, plugin side |
+| Up, Down, or a step amount over the Integration API | Only absolute `setNumber`. Compute the next value client-side. | Not planned |
 | Live value on a Stream Deck key face or LCD strip | Key images render once from the static label and Control Value keys have no active state. The Stream Deck+ strip shows only the product name and bank label; dials drive Level targets only. Asks for a live readout on key faces (part A) and per-dial strip segments with Selector and Counter stepping (part B). | Open, #133 |
 | Display-only custom-menu readout | The menu has Slider, Segmented, and Action items. No text readout of a value. Asks for a `ValueDisplay` item with a label and format. | Open, #135 |
 | Serial port ownership for plugins | Not a Control Value gap, but it blocks a common companion design: a plugin that drives a serial display from a Control Value. The Core probes every serial port at startup unless probing is disabled, and there is no claim registry. | Open, #134 |
@@ -480,6 +506,7 @@ quote the number when you talk to DMX Core and read
 | MIDI CC output feedback | Motorized faders and LED rings do not receive the value. OSC echo and drive write-back are the only feedback paths. | Deferred |
 | Per-device backend instances | One backend registration per name. A plugin that talks to several devices must namespace its control ids. | Not planned |
 | dB display or dB scaling | Levels are fractions and percent only. | Dropped |
+| Text or floating-point kinds | Counter is integer only; there is no free-text value. Use a Selector for a small fixed vocabulary. | Not planned |
 | Persistence of plugin-backend values across restart | The Core relies on the backend to report. | By design |
 | Write-on-change persistence for internal values | Internal values are saved with the periodic system-state save. | By design |
 
@@ -533,3 +560,33 @@ can all flip, with a light show on entry.
 5. A script can read it with `dmx.controlValue.get("GAME")` and branch.
 
 The value survives a normal restart through the system-state save.
+
+---
+
+## 10. Worked example: a scoreboard
+
+Goal: home and away scores that Stream Deck keys step, that a timeline can
+bump, and that a display plugin mirrors.
+
+1. Two Counter Control Values `HOME_SCORE` and `AWAY_SCORE`, backend
+   `INTERNAL`, range 0..99, step 1, wrap off.
+2. Stream Deck keys: ControlValue Up and Down with no amount for the ±1
+   keys, and Up with amount 6, 3, and 2 for touchdown, field goal, and safety.
+   Holding a ±1 key auto-repeats.
+3. A "touchdown show" timeline with a ControlValue milestone at 0 s: code
+   `HOME_SCORE`, operation Up, amount 6, so the show and the score change
+   together.
+4. A Selector `TICKER_MESSAGE` with choices `SCORE`, `TOUCHDOWN`, `BLANK`,
+   set from milestones in the same timeline (`TOUCHDOWN` at 0 s, back to
+   `SCORE` at 8 s).
+5. A display plugin subscribes to `cv.HOME_SCORE`, `cv.AWAY_SCORE`, and
+   `cv.TICKER_MESSAGE` through the entity API (SDK 1.12) and renders them,
+   or registers itself as the backend so it receives the integer verbatim on
+   every write with no coalescing.
+6. Home Assistant and the Integration API see the scores as `number`
+   entities with `min` 0, `max` 99, `step` 1, and can `setNumber` to reset
+   them at the start of a game.
+
+The live score is visible on the touchscreen through a custom-menu item and
+in the admin UI; a text readout item (#135) and a Stream Deck key-face readout
+(#133) are still open.

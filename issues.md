@@ -13,7 +13,9 @@ Wording: "Open" means requested and accepted as a direction, not scheduled.
 
 ### #131 — Counter Control Value kind
 
-*Open, 2026-09-16. Cited by: [control-values.md](concepts/control-values.md) section 7.*
+*Shipped 2026-09-16 (Core commit e36880c2, SDK contract 1.12). Described in
+[control-values.md](concepts/control-values.md); the Home Assistant plugin
+mapping is a follow-up.*
 
 **Motivation.** A venue wants Stream Deck keys that step a home and away
 score up and down, with the score living in the Core as a Control Value so a
@@ -33,7 +35,8 @@ handles the kind. The editor gains a kind picker with min, max, and step.
 
 ### #132 — Control Value action: step by a signed amount
 
-*Open, 2026-09-16. Cited by: control-values.md section 7.*
+*Shipped 2026-09-16 (Core commit e36880c2). Described in control-values.md
+section 3.1.*
 
 **Motivation.** A "home touchdown" key needs to add 6 to a score in one
 press. The Control Value trigger action carries only the operation and the
@@ -185,3 +188,21 @@ syntax accepted by trigger payloads does not work on the output side.
 one, reuse an existing one when present, report send failures to the Test
 button and the log, and parse output payloads with the same hex and escape
 rules as trigger payloads.
+
+## Timelines
+
+### #142 — Timeline play ignores the caller's loop, fades, dimmer and volume
+
+*Open, 2026-09-16. Cited by: [timelines.md](concepts/timelines.md) sections 3.3 and 8.*
+
+**Motivation.** A trigger action, a schedule, and the Integration API all
+carry loop, fade, and volume fields, but a timeline play discards them and
+uses the timeline's own settings. A timeline instance has no volume scale
+at all. Cue and sound targets honor the same fields, so the editor shows
+fields that silently do nothing for timelines.
+
+**Proposal.** Optional loop, fades, dimmer, and volume on the timeline play
+path, passed from trigger actions, schedules, and entity activation; an
+instance-level volume scale applied to every sound the timeline starts.
+Timecode chase keeps forcing loop 1. Until then, hide the ignored fields
+for timeline targets.
