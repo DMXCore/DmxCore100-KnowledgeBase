@@ -130,11 +130,14 @@ Every write path resolves to one of these operations on the runtime.
 | Up | Current + `stepSize`, clamped to 1. | Next choice, wrapping or clamping per `wrapSelector`. | Turn on. | Current + `counterStep`, clamped or wrapped per `counterWrap`. |
 | Down | Current - `stepSize`, clamped to 0. | Previous choice. | Turn off. | Current - `counterStep`, clamped or wrapped. |
 | Toggle | Not applicable. | Not applicable. | Flip. | Not applicable. |
+| Follow | Not applicable. | Not applicable. | On while the input is active, off when it releases. No memory of an earlier state, so a release seen right after startup still switches off. | Not applicable. |
 
 Selector Up or Down with no known current position steps to the first choice
 (Up) or stays on index 0 (Down). A Selector with no configured choices logs a
 warning and does nothing. A Counter with no known value steps from its
-minimum.
+minimum, and an untouched `INTERNAL` Counter reports its minimum as a known
+value from the start, so key faces and readouts never show blank after a
+restart; a DSP-backed Counter stays unknown until the device reports.
 
 **Step amount.** Up and Down accept an optional **amount** that replaces the
 Control Value's own step for that one press, milestone, or script call. It is
@@ -246,7 +249,7 @@ surface keys, input trigger actions, custom-menu action items, and schedules.
 |---|---|
 | Action type | `ControlValue` |
 | Play code | The Control Value code |
-| Control Value operation | `Set`, `Up`, `Down`, `Toggle` |
+| Control Value operation | `Set`, `Up`, `Down`, `Toggle`, `Follow` |
 | Control Value set value | For Set only: a level, a choice name or index, on/off, or an integer |
 | Control Value step amount | For Up and Down only, optional: replaces the Control Value's own step (section 3.1) |
 
@@ -267,10 +270,19 @@ step-per-tick target step any kind (a Counter counts, a Selector cycles), and
 the LCD strip shows one segment per dial with its label and value. See the
 Custom Menus and Control Surfaces document, section 4.4.
 
+**Follow.** A `Follow` action on a Toggle kind mirrors a momentary input:
+on at the rising edge, off at the falling edge, with no memory of what the
+value was before. It needs a source with a release edge: a digital input
+(threshold 0 reverses it), a control-surface key, an OSC button. Surfaces
+track its release the way they track a Flash preset, and a digital-input
+trigger with a Follow action applies the contact's present state when the
+trigger is saved or the device starts. Control Value actions have no press
+mode of their own; Follow replaces the earlier Flash-mode Set.
+
 **Custom-menu button highlight.** A custom-menu action item bound to a
-Control Value Set or Toggle highlights when the live value matches the set
-value (Selector: choice name, Toggle: on). Up and Down items never highlight.
-Level items never highlight.
+Control Value Set, Toggle, or Follow highlights when the live value matches
+(Selector: choice name, Toggle and Follow: on). Up and Down items never
+highlight. Level items never highlight.
 
 ### 4.2 Continuous actions (knobs and sliders)
 
@@ -293,7 +305,9 @@ Where continuous actions appear: control surface knob assignments, custom-menu
 | `Slider` with a `ControlValueLevel` continuous action | Inline fader for a Level. |
 | `Segmented` with a Control Value code | Row of buttons for a Selector's choices, live-active one highlighted. |
 
-There is no display-only readout item (section 7).
+A `ValueDisplay` item shows any kind read-only, with an optional format
+string, and follows the value live (Custom Menus and Control Surfaces
+document, section 2.2).
 
 ### 4.4 Drives: a Level Control Value driving a lighting target
 
@@ -502,14 +516,13 @@ quote the number when you talk to DMX Core and read
 |---|---|---|
 | Home Assistant `number` entity for Counters | The Core exposes Counters as `number` entities since SDK 1.12; the Home Assistant plugin has to be updated to map them. Until then a Counter is not visible in Home Assistant. | Follow-up to #131, plugin side |
 | Up, Down, or a step amount over the Integration API | Only absolute `setNumber`. Compute the next value client-side. | Not planned |
-| Display-only custom-menu readout | The menu has Slider, Segmented, and Action items. No text readout of a value. Asks for a `ValueDisplay` item with a label and format. | Open, #135 |
 | Serial port ownership for plugins | Not a Control Value gap, but it blocks a common companion design: a plugin that drives a serial display from a Control Value. The Core probes every serial port at startup unless probing is disabled, and there is no claim registry. | Open, #134 |
-| Fire actions on the falling edge | A Control Value input trigger runs its action on the rising edge only. Falling edges update the state display only. | Not planned (framework-wide) |
+| Fire actions on the falling edge | A Control Value input trigger runs its action on the rising edge only; falling edges update the state display. The `Follow` operation covers the common case of mirroring a momentary input onto a Toggle. | Not planned (framework-wide) |
 | Fade on trigger, schedule, Integration API, OSC, plugin writes | Fade is available from timelines, scripts, and the web level endpoint only. | Not planned |
 | Up, Down, or fade over the Integration API | Only `setLevel`, `setChoice`, and switch commands. | Not planned |
 | OSC shortcut for Selector or Toggle | `/dmxcore/control/{code}` is Level only. | Not planned |
 | One Control Value driving several targets | `drives` is 1:1. | Not planned until needed |
-| Auto-repeat on MIDI or touchscreen buttons | Press-and-hold repeat is Stream Deck only. | Deferred |
+| Auto-repeat on MIDI or touchscreen buttons | Press-and-hold repeat is Stream Deck and OSC only. | Deferred |
 | MIDI CC output feedback | Motorized faders and LED rings do not receive the value. OSC echo and drive write-back are the only feedback paths. | Deferred |
 | Per-device backend instances | One backend registration per name. A plugin that talks to several devices must namespace its control ids. | Not planned |
 | dB display or dB scaling | Levels are fractions and percent only. | Dropped |
@@ -597,5 +610,5 @@ bump, and that a display plugin mirrors.
 The live score is visible on every Stream Deck key that acts on the Counter
 (the key face shows the number and a Set key lights while it matches), on the
 Stream Deck+ LCD strip when a dial steps it, on the touchscreen through a
-custom-menu item, and in the admin UI. A read-only text item for the custom
-menu (#135) is still open.
+custom-menu item (a `ValueDisplay` item prints the number with an optional
+format), and in the admin UI.

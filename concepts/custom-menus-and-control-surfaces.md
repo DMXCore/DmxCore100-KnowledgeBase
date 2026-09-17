@@ -67,6 +67,7 @@ version; the device upgrades older versions on load (the current version is
 | `PRESETS`, `CUES` | Nothing | Built-in browsers listing every preset or cue. Tapping a child plays it with the **system default** fade and loop; per-item settings do not apply here. |
 | `SLIDER` | A continuous action | Inline fader for any continuous target. Seeded with the target's current value on load. |
 | `SEGMENTED` | A Selector Control Value code | Row of buttons for the choices, live-highlighted. Seeded with the choices and the active choice on load. |
+| `VALUEDISPLAY` | A Control Value code of any kind, optional `valueFormat` | Read-only live readout, never tappable: a Level as percent, a Counter as its number, a Selector as its choice, a Toggle as On/Off. `valueFormat` uses the Stream Deck key syntax (`{0}` the value, `{1}` the default text, `Yes|No` for a Toggle). On the web the value sits under the name; on the touchscreen it is the card title. |
 | `MASTERDIMMER` | Nothing | Legacy inline master slider; `SLIDER` with the master target is the successor. |
 | `OSC` | Client, address, parameter | Sends one OSC message from the web or touchscreen client. UI-only. |
 | `STOPOUTPUT` | Nothing | Legacy; upgraded to an Action item with Blackout. |
@@ -81,7 +82,7 @@ before knob focus returns to it.
 An Action item highlights while its **state binding** matches. The binding
 is explicit (`stateControlValueCode` and `stateValue`) or derived from a
 Control Value action: Set highlights while the value equals the set value,
-Toggle while the value is on. Up and Down derive nothing. Items whose action
+Toggle and Follow while the value is on. Up and Down derive nothing. Items whose action
 targets a cue, preset, sound, timeline, schedule, mute, output, or blackout
 highlight while that target is active by the same rule control surfaces use
 (section 4.5). Updates arrive over SignalR from the Control Value status
@@ -185,7 +186,8 @@ when the assignment has no action yet.
 
 - **Stream Deck** keys are slot-addressed. Press and release are real.
   Settings: brightness 0–100 (default 30) and sleep timeout in seconds
-  (default 60, 0 never). Key faces render label, icon, colors, and, for
+  (default 60, 0 never). Any input on a sleeping deck, a key, a dial, a
+  dial press, or a strip swipe, only wakes it and is not dispatched. Key faces render label, icon, colors, and, for
   Control Value keys, the live value. Classic decks need a 180° image
   rotation; encoder-capable models do not. The Plus has four dials with
   press (a `PAD` section) and rotation (a `SLIDER` section) plus the LCD
@@ -222,7 +224,7 @@ LED colors, key faces, and operator-view cells use one rule:
 | Mute, Output Toggle, Blackout | The corresponding global flag is engaged |
 | Stop Playback | Nothing is playing |
 | Switch Bank | The target bank is the active one |
-| Control Value Toggle | The value is on |
+| Control Value Toggle, Control Value Follow | The value is on |
 | Control Value Set | The value equals the set value |
 | Everything else, including Control Value Up and Down | Never |
 
@@ -302,7 +304,6 @@ private; quote the number when you talk to DMX Core and read
 
 | Gap | Detail | Status |
 |---|---|---|
-| Read-only value item on a custom menu | No text readout of a Control Value; Slider, Segmented, and Action only. | Open, #135 |
 | MIDI LED and motor feedback beyond the Akai LPD8 mk2 | LED protocols are None or Akai SysEx RGB. Other controllers get no color feedback; motorized MIDI faders get no position feedback. | Deferred |
 | 14-bit MIDI and NRPN | Control Change 0..127 only. | Not planned |
 | Auto-repeat on MIDI and KD-WP8 buttons | Stream Deck and OSC only. | Deferred |

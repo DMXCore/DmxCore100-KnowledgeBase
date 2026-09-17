@@ -134,7 +134,7 @@ Rules:
 | Entity | Command | Internal effect |
 |---|---|---|
 | `cue.X`, `sound.X` | `activate` with optional `loop`, `fadeInMs`, `fadeOutMs` | Builds a Cue or Sound trigger action. Omitted fields take the device's **Settings → Playback** defaults, the same as a tap in the UI. This is the only surface where omitted values fall back to system defaults; a stored trigger action never does. |
-| `timeline.X` | `activate` | Builds a Timeline trigger action. `loop` and fades are accepted but **ignored**; the timeline's own settings apply. |
+| `timeline.X` | `activate` with optional `loop`, `fadeInMs`, `fadeOutMs` | Builds a Timeline trigger action. `loop` replaces the timeline's own loop when sent; the fades replace the timeline's own when non-zero; anything omitted plays as authored. Timecode chase still forces its own loop. |
 | `preset.X` | `turnOn`, `activate` | Preset trigger action (fade to the preset). `turnOff`: stop the preset with the default fade. `toggle`: whichever is the opposite of the current active state. A command that matches the current state is a no-op. |
 | `ambient.X` | same | Ambient Preset trigger action; `turnOff` clears that ambient with the default fade. |
 | `schedule.X` | `turnOn`, `turnOff`, `toggle` | Sets the schedule's enabled flag and **saves it**. A no-op when already in that state. |
@@ -258,7 +258,7 @@ private, so quote the number when you talk to DMX Core and read
 | Fire an input trigger | No entity for input triggers. A plugin can fire one; a control system cannot. Bind the control system's button to an entity instead, or give it an HTTP input trigger URL. | Not planned |
 | Fire an output event | No entity for output events. | Not planned |
 | Playback position and hold state | Only the now-playing text. No progress, remaining time, loop count, or HOLDING for timelines, and no way to release a hold. | Not planned |
-| Timeline play parameters | `loop` and fades on a timeline `activate` are ignored. | Open, #142 |
+| Dimmer and volume on a timeline `activate` | The Integration API carries loop and fades only; the dimmer and volume scales a trigger action or script can pass are not on the wire. | Not planned |
 | Color and non-intensity fixture functions | `fixture.X` is intensity only on the Integration API and plugin API. MCP has `set_fixture_modifiers`. | By design for v1 |
 | Control Value Up, Down, step amount, fade | Absolute writes only. | Not planned |
 | MCP `setChoice` and `setNumber` | No MCP tool for Selector or Counter writes. | Open, not scheduled |
