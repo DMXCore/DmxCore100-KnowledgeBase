@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `1cfcdeb0`
+**Verified against:** DMX Core 100 software `main` at commit `30d51022`
 (2026-09-16), Integration API protocol version 1, Plugin SDK contract 1.12.
 **User-facing documentation:**
 <https://docs.dmxcore.com/dmx-core-100/integrations/integration-api>,
@@ -75,6 +75,7 @@ catalog form.
 | `zone.CODE` | Zones | level | Has a code |
 | `fixture.CODE` | Fixture instances | level | Enabled and has a code |
 | `cv.CODE` | Control Values | level, switch, select, or number by kind | Enabled and has a code |
+| `output.CODE` | Output events | switch for a Digital Output, button for every other type | Enabled and has a code |
 | `system.*` | Built in | see below | Always |
 
 Built-in entities: `system.masterdimmer` (level), `system.volume` (level),
@@ -111,6 +112,7 @@ per-entity cache. Understanding the source tells you what the state means.
 | `system.mute`, `system.outputmute`, `system.blackout` | The three global flags | Server state snapshot |
 | `schedule.X` `isOn` | The schedule's enabled flag, persisted | Schedule save |
 | `cv.X` | See the Control Values document | Control Value status |
+| `output.X` `isOn` (Digital Output only) | The last **commanded** logical level of the module port (on = energized, before the event's Inverted polarity), not a read-back of the pin. Every Digital Output event on the same port reports the same value. False after a restart until something drives the port. A pulse reports on, then off after the pulse width. | Any fire of a Digital Output event, from any surface |
 | `system.nowplaying` `text` | A human-readable status line: `Cue: INTRO`, `Sound: WALKIN`, `Playing timeline: SHOW1`, `Playing 3 timelines`, `Routing input`, or empty when idle. Uses the display name instead of the code when that device setting is on. | Playback operation status |
 
 Rules:
@@ -141,6 +143,8 @@ Rules:
 | `zone.X` | `setLevel` | Sets the zone dimmer, clamped. |
 | `fixture.X` | `setLevel` | Sets the fixture's intensity modifier, clamped, through the same path as the operator faders. A fixture with no control data is ignored with a warning. |
 | `cv.X` | `setLevel`, `turnOn`, `turnOff`, `toggle`, `setChoice`, `setNumber` | Control Value operations with origin `INTEGRATION`. No Up, Down, or fade. |
+| `output.X` (Digital Output) | `turnOn`, `turnOff`, `toggle`, `activate` | OutputEvent trigger action with operation Set On, Set Off, the opposite of the tracked level, or Pulse. It is the one switch that also accepts `activate` on the Integration API. Dropped while output is off, except `turnOff`. MCP `activate` on it sends `turnOn`, like any switch. |
+| `output.X` (other types) | `activate` | OutputEvent trigger action: fires once. Dropped while output is off. |
 | `system.masterdimmer`, `system.volume` | `setLevel` | Sets the master value, clamped. |
 | `system.mute`, `system.outputmute`, `system.blackout` | `turnOn`, `turnOff`, `toggle` | Sets the flag. Blackout is the latched mask; Output Off is the cold park that drops playback starts. |
 | `system.stop` | `activate` | StopPlayback trigger action. |

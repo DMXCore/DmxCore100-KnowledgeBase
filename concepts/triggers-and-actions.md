@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `90e4533b`
+**Verified against:** DMX Core 100 software `main` at commit `30d51022`
 (2026-09-16), Plugin SDK contract 1.11.
 **User-facing documentation:**
 <https://docs.dmxcore.com/dmx-core-100/scheduling-automation/input-triggers>,
@@ -335,10 +335,12 @@ The entity catalog maps commands onto trigger actions with origin
 | `system.stop` (kind `button`) | `activate` | StopPlayback |
 | `system.blackout`, `system.mute`, `system.outputmute` (kind `switch`) | `turnOn`, `turnOff`, `toggle` | Blackout / Mute / OutputToggle |
 | `cv.X` | see Control Values | ControlValue |
+| `output.X` on a Digital Output (kind `switch`) | `turnOn`, `turnOff`, `toggle`, `activate` | OutputEvent with `outputEventOperation` `SETON` / `SETOFF` (toggle resolves against the port's tracked level) / `PULSE` |
+| `output.X` on any other type (kind `button`) | `activate` | OutputEvent, `PULSE` |
 
-There is no entity for firing an input trigger or an output event. A plugin
-that wants "the venue decides" behavior fires a Plugin-type input trigger
-instead (section 3.2).
+There is no entity for firing an input trigger. A plugin that wants "the
+venue decides" behavior fires a Plugin-type input trigger instead (section
+3.2). Output events are entities since Core `30d51022`.
 
 ---
 
@@ -380,7 +382,7 @@ private, so quote the number when you talk to DMX Core and read
 | Several actions per trigger | One action per trigger, key, menu item, or schedule. Play a timeline for several things. | By design |
 | Actions on the falling edge | Only Flash (preset) and Momentary (timeline) react to release. A "stop cue when the contact opens" needs a second trigger with the stop payload and a StopPlayback or FadeOut action. A Control Value action with operation `Follow` (Toggle kinds; #144, shipped 2026-09-16) is On while the input is active and Off on release, so a contact holds a Control Value On only while closed; an OutputEvent action with `outputEventOperation` `FOLLOW` does the same for a Digital Output (Core `4838b26f`). | Not planned in general; Control Value Follow: closed, #144 |
 | Output event level on types other than Digital Output | Only a Digital Output has a level. UDP, TCP, OSC, HTTP, MQTT, and Plugin events carry one payload and fire once whatever `outputEventOperation` says; the editors hide the field for them. An on/off pair on MQTT or HTTP needs two output events. | Not planned |
-| Integration API and plugin-fired output events | The entity catalog and the plugin host build OutputEvent actions with the default operation, so a Digital Output fired from Companion, MCP, or a plugin always pulses. | Open, not tracked |
+| Integration API and plugin-fired output events | Fixed: every enabled output event is an `output.CODE` entity (Core `30d51022`); a Digital Output is a switch with turnOn, turnOff, toggle and activate (pulse). The plugin Playback API still has no output event call; plugins use the entity API. | Closed |
 | Conditions, counters, debouncing | No per-trigger conditions or rate limiting. Use a Script action. | Not planned |
 | Authenticated HTTP triggers | Trigger URL paths accept any caller. Asks for a per-trigger token or an API-key requirement. | Open, #137 |
 | UDP or TCP value mode | Only HTTP, OSC, MQTT, and Control Value carry a value. | Not planned |
