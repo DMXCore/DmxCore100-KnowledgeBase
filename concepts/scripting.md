@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `1cfcdeb0`
+**Verified against:** DMX Core 100 software `main` at commit `90e4533b`
 (2026-09-16).
 **User-facing documentation:**
 <https://docs.dmxcore.com/dmx-core-100/scheduling-automation/scripting>,
@@ -158,7 +158,7 @@ the missing-target rules apply.
 | `fadeToPreset(code, durationMs)` | Preset action with the fade as fade-in. |
 | `stopPlayback()` | StopPlayback action: everything stops. |
 | `fadeOut(durationMs)` | FadeOut action: current cue and sound fade out. |
-| `fireOutputEvent(code)` | OutputEvent action. |
+| `fireOutputEvent(code, operation?)` | OutputEvent action. `operation` is `"pulse"` (default), `"on"`, or `"off"` and only applies to a Digital Output event (set the level, or pulse it for the event's `pulseWidthMS`); every other type fires once. Not `"follow"`: a script has no release edge. |
 | `isPlaying(code)` | True when a cue, sound, or timeline with that code is currently playing. |
 
 ### 5.2 Looks and fixtures

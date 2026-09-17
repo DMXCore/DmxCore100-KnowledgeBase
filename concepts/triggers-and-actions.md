@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `1cfcdeb0`
+**Verified against:** DMX Core 100 software `main` at commit `90e4533b`
 (2026-09-16), Plugin SDK contract 1.11.
 **User-facing documentation:**
 <https://docs.dmxcore.com/dmx-core-100/scheduling-automation/input-triggers>,
@@ -74,6 +74,7 @@ custom-menu definitions.
 | `targetControlSurfaceId`, `targetBankIndex` | int, nullable | SwitchControlSurfaceBank and NextControlSurfaceBank. Null surface means "the surface the key is on". |
 | `controlValueOperation`, `controlValueSetValue` | see Control Values | ControlValue actions. |
 | `targetState` | `TOGGLE`, `ON`, `OFF` | Mute, OutputToggle, Blackout: flip or force. |
+| `outputEventOperation` | `PULSE` (default), `SETON`, `SETOFF`, `FOLLOW` | OutputEvent actions on a Digital Output (section 9). Ignored for every other output event type. |
 
 There is **no system default fallback** for any of these. A 0 fade is no
 fade. The system-wide default fade and loop settings apply only to plays
@@ -127,7 +128,7 @@ currently in its triggered state.
 | MQTT | `address` = topic, exact match, lowercased | Payload text equals `startPayload` | Payload text equals `stopPayload` | With no payloads configured: payload parsed as a boolean (`1`, `true`, `on`, ...); unparseable means rising. `[payload]` works as for OSC. The broker is a system setting. Topic wildcards are not supported in the address. |
 | Art-Net, sACN, DMX Serial | `universeId`, `channel` 1–512, `threshold` 0–255, `dmxTriggerMode` | Channel value goes **above** the threshold | Channel value goes to or below the threshold | `AboveThreshold`: evaluate from the first frame. `ZeroThenAboveThreshold`: ignore everything until the channel has been seen at 0 once, then behave as AboveThreshold. Prevents a trigger firing on the first frame of a console that is already up. sACN joins the universe's multicast group. |
 | Digital Input | `universeId` = module input 1–4, `threshold` = polarity | Input goes active (`threshold` 1, the default) or inactive (`threshold` 0, inverted) | The opposite transition | Both edges are reported, deduplicated by the triggered state, so Flash and Momentary follow the contact. On load (save, threshold change, startup) the trigger learns the input's present state: the list shows Active/Inactive at once, and a Control Value `Follow` action is applied to it immediately. Before #139 (fixed 2026-09-16) a trigger saw one edge direction only. |
-| Control Value | `address` = Control Value code, `threshold` percent, `startPayload` / `stopPayload` choice | See the Control Values document | | Fires on any origin except the trigger's own. First value arms without firing. |
+| Control Value | `address` = Control Value code, `threshold` percent, `startPayload` / `stopPayload` choice | See the Control Values document | | Fires on any origin except the trigger's own. On load (save, startup) the trigger arms from the Control Value's present value without firing, so the first change after a save is an edge; a `Follow` action (Control Value or Digital Output) is applied to that present state immediately. Before Core `90e4533b` the first change after a save only armed and the second one fired. |
 | Plugin | `code`, optional `address` = plugin id | The plugin calls `FireAsync(code)` | Never | With `address` set only that plugin can fire it. Unknown or disabled codes are ignored. No payload travels with a plugin fire. |
 
 Payload syntax for UDP and TCP (`startPayload`, `stopPayload`):
@@ -203,7 +204,7 @@ released.
 | `Preset` | Preset code | Fade fixtures to the preset's state. A state transition, not a playing item. | fadeIn as the single fade, Toggle, Flash |
 | `Sound` | Sound code | Play the audio file. | loop, fades, volume, Toggle |
 | `Timeline` | Timeline code | Play the timeline from the start. If parked at an unnamed Hold, release it instead. | Momentary |
-| `OutputEvent` | Output event code | Send the output event (section 9). | |
+| `OutputEvent` | Output event code | Send the output event (section 9). On a Digital Output, `outputEventOperation` picks pulse, set on, set off, or follow the input. | outputEventOperation |
 | `StopPlayback` | | Stop all cues, sounds, timelines, and presets. | |
 | `FadeOut` | | Fade out the current cue and sound over `fadeOutDurationMS`. | fadeOut |
 | `Blackout` | | Latched output mask: playback keeps running underneath, output is dark until Blackout Off. | targetState |
@@ -232,7 +233,9 @@ These apply to every trigger action regardless of source, in this order:
    `OutputEvent` actions are dropped. State actions (`Preset`,
    `AmbientPreset`, `ControlValue`, `EffectStep`, `Blackout`, `Mute`) still
    run, and `OutputToggle` always runs so a scheduled or triggered Output On
-   works.
+   works. One exception: an `OutputEvent` action with `outputEventOperation`
+   `SETOFF`, and the release of a `FOLLOW` one, pass the gate, so a Digital
+   Output cannot be left stuck on by Output Off.
 2. **Recorder gate** (input triggers only). While the DMX recorder is
    active, input-trigger actions do not run. The edge still reaches the
    recorder's own start/stop trigger and timeline holds.
@@ -304,7 +307,7 @@ origin `SCRIPT` and go through the same dispatch rules.
 | `fadeToPreset(code, durationMs)` | Preset |
 | `stopPlayback()` | StopPlayback |
 | `fadeOut(durationMs)` | FadeOut |
-| `fireOutputEvent(code)` | OutputEvent |
+| `fireOutputEvent(code, operation?)` | OutputEvent; `operation` `"pulse"` (default), `"on"`, `"off"` |
 | `isPlaying(code)` | Query only |
 
 Other script surfaces that are not trigger actions: `masterDimmer`,
@@ -345,7 +348,8 @@ An output event is the outbound counterpart: a named message the device
 sends when an `OutputEvent` action runs, a timeline reaches an OutputEvent
 milestone, a script calls `fireOutputEvent`, or the Test button is pressed.
 Fields: `code`, `type`, `destination`, `address`, `payload`, `port`,
-`universeId`, `pluginName`.
+`universeId`, `pluginName`, and for Digital Output `pulseWidthMS` (default
+1000) and `inverted`.
 
 | Type | What is sent |
 |---|---|
@@ -354,7 +358,7 @@ Fields: `code`, `type`, `destination`, `address`, `payload`, `port`,
 | OSC | To `destination` as `ip:port`, at `address`. A numeric payload is sent as float32, other text as a string, and `[payload]` in the address is substituted with the payload and sent without an argument. |
 | HTTP | A **GET** to `address` when it is a full URL, or to `destination` + `address` path. No POST, body, or headers. |
 | MQTT | Publish `payload` on topic `address` through the configured broker. |
-| Digital Output | Pulse module output `universeId` active for one second. |
+| Digital Output | Drives module output `universeId`. The **invocation** carries an operation (`outputEventOperation` on the trigger action or timeline milestone, the second argument of `fireOutputEvent`): `PULSE` (default) sets the output on and off again after the event's `pulseWidthMS`, ending off even if a Set On preceded it; `SETON` / `SETOFF` hold the level until the next change, and are never cleared by a timeline or playback stop; `FOLLOW` (trigger actions only, `isHeldWhilePressed`) is Set On on the press or start edge and Set Off on the release or stop edge, so a Toggle Control Value or a held contact keeps a relay closed exactly while active. `inverted` reverses the pin polarity (On drives it low) without changing any of the above. Test and every pre-`4838b26f` caller pulse. |
 | Plugin | Invoke the output action provider registered by `pluginName` with target `address` and `payload`. |
 | Art-Net, sACN, DMX Serial | **Not implemented.** The types exist in the editor but sending is a no-op (section 10). |
 
@@ -374,7 +378,9 @@ private, so quote the number when you talk to DMX Core and read
 | Gap | Detail | Status |
 |---|---|---|
 | Several actions per trigger | One action per trigger, key, menu item, or schedule. Play a timeline for several things. | By design |
-| Actions on the falling edge | Only Flash (preset) and Momentary (timeline) react to release. A "stop cue when the contact opens" needs a second trigger with the stop payload and a StopPlayback or FadeOut action. A Control Value action with operation `Follow` (Toggle kinds; #144, shipped 2026-09-16) is On while the input is active and Off on release, so a contact holds a Control Value On only while closed. | Not planned in general; Control Value Follow: closed, #144 |
+| Actions on the falling edge | Only Flash (preset) and Momentary (timeline) react to release. A "stop cue when the contact opens" needs a second trigger with the stop payload and a StopPlayback or FadeOut action. A Control Value action with operation `Follow` (Toggle kinds; #144, shipped 2026-09-16) is On while the input is active and Off on release, so a contact holds a Control Value On only while closed; an OutputEvent action with `outputEventOperation` `FOLLOW` does the same for a Digital Output (Core `4838b26f`). | Not planned in general; Control Value Follow: closed, #144 |
+| Output event level on types other than Digital Output | Only a Digital Output has a level. UDP, TCP, OSC, HTTP, MQTT, and Plugin events carry one payload and fire once whatever `outputEventOperation` says; the editors hide the field for them. An on/off pair on MQTT or HTTP needs two output events. | Not planned |
+| Integration API and plugin-fired output events | The entity catalog and the plugin host build OutputEvent actions with the default operation, so a Digital Output fired from Companion, MCP, or a plugin always pulses. | Open, not tracked |
 | Conditions, counters, debouncing | No per-trigger conditions or rate limiting. Use a Script action. | Not planned |
 | Authenticated HTTP triggers | Trigger URL paths accept any caller. Asks for a per-trigger token or an API-key requirement. | Open, #137 |
 | UDP or TCP value mode | Only HTTP, OSC, MQTT, and Control Value carry a value. | Not planned |

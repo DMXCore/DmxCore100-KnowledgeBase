@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `1cfcdeb0`
+**Verified against:** DMX Core 100 software `main` at commit `90e4533b`
 (2026-09-16), Plugin SDK contract 1.12.
 **User-facing documentation:** <https://docs.dmxcore.com/dmx-core-100/integrations/control-values>
 
@@ -428,7 +428,10 @@ dimmer or a zone.
 Rules that matter:
 
 - The first known value **arms without firing**. Server boot or a DSP
-  reconnect never replays edges.
+  reconnect never replays edges. On load the trigger arms from the Control
+  Value's present value, so the first change after a save or a restart is a
+  real edge (before Core `90e4533b` it only armed, and the second change
+  fired); a `Follow` action is applied to that present state at once.
 - The trigger fires on updates from **any origin except its own**
   (`TRIGGER:{id}`). It does fire on writes from scripts, timelines, the web
   UI, and other triggers, not only on DSP-side changes.

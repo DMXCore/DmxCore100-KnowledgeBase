@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `1cfcdeb0`
+**Verified against:** DMX Core 100 software `main` at commit `90e4533b`
 (2026-09-16), Plugin SDK contract 1.12.
 **User-facing documentation:**
 <https://docs.dmxcore.com/dmx-core-100/playback/timelines>,
@@ -78,7 +78,7 @@ Common fields: `timelineEventId`, `timestampMS` (int), `type`, `enabled`,
 | `CUE` | Cue code | Maximum play time; empty = the cue's own length | 0 forever, 1 once, N passes | Fades for the cue | `dimmer` scale, `inPointMS` / `outPointMS` trim, `playbackLayer` override |
 | `SOUND` | Sound code | Maximum play time | Same | Fades for the sound | `dimmer` (volume scale), `pan`, `inPointMS` / `outPointMS`, `playbackLayer` |
 | `PRESET` | Preset code | Time to hold the preset, then release it | | Fade-in is the fade to the preset; fade-out is the release fade | `dimmer` scale |
-| `OUTPUTEVENT` | Output event code | | | | Fires once at the timestamp |
+| `OUTPUTEVENT` | Output event code | | | | `outputEventOperation`: `PULSE` (default), `SETON`, `SETOFF`. Only a Digital Output has a level; other types fire once. No `FOLLOW` on a timeline (a stored `FOLLOW` runs as `SETON`) |
 | `CONTROLVALUE` | Control Value code | Fade time for a Level Set | | | `controlValueOperation`, `controlValueSetValue`, `controlValueStepAmount` |
 | `SCRIPT` | Script code | | | | Queued at the timestamp |
 | `HOLD` | Release trigger code, or empty | Timeout in ms; empty or 0 = wait forever | | Fade-out is the release fade for sustained events; 0 = let the current pass finish | `completeLoopOnRelease` |
@@ -126,7 +126,7 @@ On every play the device:
 | Cue | Starts a cue player at the timestamp with the milestone's loop, trim, dimmer, and fades. Effective playback layer is the milestone's override, else the cue's own. A cue with Bounce set plays forward then backward. A cue's known universes are declared up front so sparse recordings hold their last frame rather than blacking out during a gap. |
 | Sound | Starts a sound player with loop, trim, pan, fades, and `dimmer` as a volume scale. `playbackLayer` null means mix freely; same-layer sounds replace each other with a short fade. |
 | Preset | Fades fixtures to the preset over the fade-in and applies the preset's per-entry effects (global, fixture, or zone scope). If a duration is set, the preset is released at the end of it over the fade-out, or instantly when no fade-out is set. It never falls back to the system default fade. |
-| Output event | Sends the output event once. |
+| Output event | Fires the output event with the milestone's `outputEventOperation`. A Digital Output `SETON` stays on when the timeline ends or stops; add a `SETOFF` milestone where it should drop. "Open the door for 2 s" is a `SETON` at 0:00 and a `SETOFF` at 0:02 on the same event. |
 | Control Value | Runs the operation with origin `TIMELINE`. A Level Set with a duration ramps over that time. |
 | Script | Queues the script; the timeline clock never waits for it. |
 | Hold | Engages the hold (section 5). |
