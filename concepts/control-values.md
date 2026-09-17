@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `90e4533b`
+**Verified against:** DMX Core 100 software `main` at commit `46a57a03`
 (2026-09-16), Plugin SDK contract 1.12.
 **User-facing documentation:** <https://docs.dmxcore.com/dmx-core-100/integrations/control-values>
 
@@ -387,11 +387,15 @@ State changes are pushed over the Integration API WebSocket, coalesced at
 | Address | Direction | Payload |
 |---|---|---|
 | `/dmxcore/control/{code}` | In | Float 0..1. Sets a **Level** Control Value directly with origin `OSC`. No surface or trigger configuration needed. |
+| `/dmxcore/control/{code}/up`, `/down` | In | Optional step amount. Steps the Control Value with origin `OSC`, exactly as a trigger action's Up or Down would: a **Level** by `stepSize`, a **Selector** by choices, a **Counter** by `counterStep`, a **Toggle** on or off. The argument replaces the step for that one message and follows the section 3.1 rules, so a magnitude above 1 is a percent and a negative amount runs the other way. |
 | `/dmxcore/control/{code}` | Out | Float 0..1. Echoed to connected OSC clients on every Level status publish, so a TouchOSC fader tracks. The code is lowercased in the outgoing address. |
 
-Selector, Toggle, and Counter are not addressable through this shortcut and
-are not echoed. Use an OSC control surface or an OSC input trigger with a
-Control Value action.
+The absolute form is Level only, and only Level is echoed back. Every kind
+can be stepped through the `/up` and `/down` form, which is what a control
+with no position of its own — an encoder, a pair of +/- buttons — needs: the
+device holds the value and clamps it, so the sender never tracks or re-syncs
+anything. For an absolute write to a Selector, Toggle, or Counter, use an OSC
+control surface or an OSC input trigger with a Control Value action.
 
 ### 5.4 Scripts
 
@@ -523,7 +527,7 @@ quote the number when you talk to DMX Core and read
 | Fire actions on the falling edge | A Control Value input trigger runs its action on the rising edge only; falling edges update the state display. The `Follow` operation covers the common case of mirroring a momentary input onto a Toggle. | Not planned (framework-wide) |
 | Fade on trigger, schedule, Integration API, OSC, plugin writes | Fade is available from timelines, scripts, and the web level endpoint only. | Not planned |
 | Up, Down, or fade over the Integration API | Only `setLevel`, `setChoice`, and switch commands. | Not planned |
-| OSC shortcut for Selector or Toggle | `/dmxcore/control/{code}` is Level only. | Not planned |
+| Absolute OSC write to a Selector, Toggle, or Counter | `/dmxcore/control/{code}` sets a Level only; the other kinds can be stepped with `/up` and `/down` but not set outright. | Not planned |
 | One Control Value driving several targets | `drives` is 1:1. | Not planned until needed |
 | Auto-repeat on MIDI or touchscreen buttons | Press-and-hold repeat is Stream Deck and OSC only. | Deferred |
 | MIDI CC output feedback | Motorized faders and LED rings do not receive the value. OSC echo and drive write-back are the only feedback paths. | Deferred |

@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `1cfcdeb0`
+**Verified against:** DMX Core 100 software `main` at commit `46a57a03`
 (2026-09-16).
 **User-facing documentation:**
 <https://docs.dmxcore.com/dmx-core-100/lighting/faders>,
@@ -129,6 +129,7 @@ Control edit them:
 | Control-surface knob or fader (MIDI USB, RTP-MIDI, Network MIDI 2, OSC surface) | Assignment's continuous action → raw 0..127 → scaling → target | Subject to soft takeover (section 5). |
 | Stream Deck+ dial | Encoder rotation accumulates into a 0..127 raw value seeded from the target's current position, then the same path | |
 | OSC `/dmxcore/control/{code}` | Direct Level Control Value write | No takeover, no scaling |
+| OSC `/dmxcore/control/{code}/up`, `/down` | `Nudge` on the Control Value, then its `drives` target | Relative: the device holds the position, so no takeover question arises |
 | Value-mode input trigger (HTTP, OSC, MQTT, Control Value) | Normalized 0..1 → the trigger's continuous action | Authoritative: no takeover. |
 | Custom-menu slider (touchscreen, web) | The item's continuous action | |
 | Script `masterDimmer`, `zoneDimmer`, `setFixture` | Direct engine calls, with an optional fade for master and zone | |
