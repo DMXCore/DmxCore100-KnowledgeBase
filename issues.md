@@ -181,7 +181,7 @@ unchanged.
 
 ### #141 — TCP output event only sends over a TCP Connector trigger's connection; UDP/TCP output payloads are literal text
 
-*Open, 2026-09-16. Cited by: triggers-and-actions.md sections 9 and 10.*
+*Closed, shipped 2026-09-16 (Core). Cited by: triggers-and-actions.md sections 9 and 10.*
 
 **Motivation.** A TCP output event reuses the socket a TCP Connector input
 trigger holds to the same host and port. Without such a trigger nothing is
@@ -189,10 +189,14 @@ sent, nothing is logged, and the Test button reports success. UDP and TCP
 output payloads are also sent as literal UTF-8 text, so the hex and escape
 syntax accepted by trigger payloads does not work on the output side.
 
-**Proposal.** Open a connection for the output event when no trigger holds
-one, reuse an existing one when present, report send failures to the Test
-button and the log, and parse output payloads with the same hex and escape
-rules as trigger payloads.
+**Resolution.** The shared per-endpoint connection registry counts trigger
+and output-event references separately, so each reload releases only its
+own side (before, each reload released every connection: TCP Connector
+triggers died after every startup once a TCP output event existed, and a
+trigger save dropped the output events' connections). A fire with no
+connection opens one on demand. Not connected, no payload, or a failed
+write is returned to Test and logged at Warning. UDP and TCP output
+payloads use the trigger payload syntax.
 
 ### #144 — Control Value action that follows a momentary input
 

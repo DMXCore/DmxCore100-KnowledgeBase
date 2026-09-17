@@ -347,8 +347,8 @@ Fields: `code`, `type`, `destination`, `address`, `payload`, `port`,
 
 | Type | What is sent |
 |---|---|
-| UDP | One datagram to `destination`:`port` with `payload` as UTF-8 text, exactly as written. No hex or escape syntax. |
-| TCP | `payload` as UTF-8 text on the **existing** connection that a TCP Connector input trigger holds to the same `destination` and `port`. Without such a trigger, nothing is sent. |
+| UDP | One datagram to `destination`:`port`. `payload` uses the trigger payload syntax (section 3.2): quoted text with escapes, hex bytes, or plain text. |
+| TCP | `payload` (same syntax) on a connection the device keeps open to `destination`:`port`, opened at the output-event reload and shared with a TCP Connector input trigger on the same endpoint (#141, shipped 2026-09-16). A fire on an endpoint with no connection opens one. Not connected yet, or a failed write, is reported to Test and logged at Warning. |
 | OSC | To `destination` as `ip:port`, at `address`. A numeric payload is sent as float32, other text as a string, and `[payload]` in the address is substituted with the payload and sent without an argument. |
 | HTTP | A **GET** to `address` when it is a full URL, or to `destination` + `address` path. No POST, body, or headers. |
 | MQTT | Publish `payload` on topic `address` through the configured broker. |
@@ -380,8 +380,8 @@ private, so quote the number when you talk to DMX Core and read
 | Regex or partial-field matching | UDP is prefix match, TCP is substring match, OSC and MQTT are exact text. No regex, no numeric comparison. Use value mode with a transform script for numeric thresholds. | Not planned |
 | Output events over Art-Net, sACN, DMX Serial | Editor offers the types; nothing is sent. | Open, #138 |
 | HTTP output event with POST, body, or headers | GET only. Use a Script action with `osc.send` or `mqtt.publish`, or a plugin. | Not planned |
-| Hex or escaped bytes in UDP and TCP output payloads | Trigger payloads accept hex, output payloads are plain text. | Open, #141 |
-| TCP output without a matching TCP Connector trigger | The output rides an input trigger's connection; without one nothing is sent and the Test button still reports success. | Open, #141 |
+| Hex or escaped bytes in UDP and TCP output payloads | Fixed: output payloads use the trigger payload syntax (section 9). | Closed, #141 |
+| TCP output without a matching TCP Connector trigger | Fixed: the device holds its own connection per TCP output event and shares it with a trigger on the same endpoint (section 9). | Closed, #141 |
 | Schedule fade-out at end | Fixed: `fadeOutDurationMS` applies when a schedule ends (section 6). | Closed, #140 |
 | Schedule action types | Cue, Timeline, Preset, Sound, AmbientPreset, OutputToggle, Blackout only. Script is requested. | Partly open, #143 |
 | Plugin trigger payload | `FireAsync(code)` carries no data; the script context payload is empty. | Not planned |
