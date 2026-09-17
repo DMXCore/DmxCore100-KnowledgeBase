@@ -93,6 +93,30 @@ device, and there is no registry of claimed ports.
 SDK gains enumerate and claim calls for serial ports. This is an SDK
 contract change.
 
+### #146 — Control Value step amount: 1 means 100% but 1.5 means 1.5%
+
+*Open, 2026-09-17. Cited by: control-values.md sections 5.3 and 7.*
+
+**Motivation.** The step amount field accepts either a 0..1 fraction or a
+percentage, decided by `LevelAmount`: a magnitude *above* 1 is divided by 100.
+The boundary therefore falls on the value a sender is most likely to type.
+`1.5` is 1.5% and `2` is 2%, but `1` is a fraction and moves the whole range.
+A 100% step is not a step at all — it is a jump to an end stop, which an
+absolute Set already expresses - so the rule reserves its most reachable value
+for the one meaning nobody wants.
+
+Found while bringing up a PoE rotary encoder against
+`/dmxcore/control/<code>/up`: the controller sent an argument of `1` per
+detent and drove the level from 0% to 100% each click.
+
+**Proposal.** Treat 1 and above as a percentage, so `1` is 1% and full scale
+is written `100`. One change in `LevelAmount`, applying to every surface that
+carries a step amount: trigger actions, timeline milestones, the scripting
+`up`/`down` calls and the built-in OSC step addresses. An OSC-only special
+case is explicitly rejected: the same number meaning different things on
+different surfaces would be worse than the discontinuity. Silently changes any
+existing configuration whose amount is exactly 1, so it wants a release note.
+
 ### #135 — Custom menu: read-only Control Value display item
 
 *Shipped 2026-09-16 (Core commit 69c5931a) as the `ValueDisplay` item.
