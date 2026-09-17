@@ -32,6 +32,7 @@ a **continuous action**: a target plus a scaling. The targets are:
 | `FIXTURERGBRED`, `FIXTURERGBGREEN`, `FIXTURERGBBLUE` | fixture code | One color channel of the fixture's modifier |
 | `AUDIOVOLUME` | none | The master audio volume 0..1 |
 | `CONTROLVALUELEVEL` | Control Value code | A Level Control Value, which may in turn drive one of the targets above |
+| `CONTROLVALUESTEP` | Control Value code | Relative only: each tick of an endless encoder (a Stream Deck+ dial, a relative MIDI encoder) is one Up or Down on a Control Value of any kind, so a Counter counts and a Selector cycles; `inverted` swaps the direction; an absolute fader position is ignored |
 | `NONE` | | Unassigned: the raw value is broadcast for feedback and nothing moves |
 
 A fader strip on the Faders page, a MIDI knob, a Stream Deck+ dial, an OSC
