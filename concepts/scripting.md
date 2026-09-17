@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `d1357447`
+**Verified against:** DMX Core 100 software `main` at commit `1cfcdeb0`
 (2026-09-16).
 **User-facing documentation:**
 <https://docs.dmxcore.com/dmx-core-100/scheduling-automation/scripting>,
@@ -49,7 +49,7 @@ Three things to keep in mind:
 | `enabled` | bool | A disabled script does not run from triggers or events. The editor's Run button still works, so a script can be tested while disabled. |
 | `source` | string | The JavaScript text. |
 | `timeoutSeconds` | int, nullable | Wall-clock limit per run. Null means 30 s. Values above 600 are capped at 600. |
-| `runOn` | list of `STARTUP`, `CUESTARTED`, `CUEENDED`, `SCHEDULEFIRED` | Lifecycle events that run the script (section 4.2). |
+| `runOn` | list of `STARTUP`, `CUESTARTED`, `CUEENDED`, `SCHEDULEFIRED`, `SCHEDULEENDED` | Lifecycle events that run the script (section 4.2). |
 
 Plus a per-script key-value **store** persisted on the same database row
 (section 5.6). Run status and the last log lines are kept in memory only
@@ -154,7 +154,7 @@ the missing-target rules apply.
 |---|---|
 | `playCue(code, { fadeIn, fadeOut, loop, dimmer, toggle })` | Cue action. Defaults: no fades, loop 1, dimmer 1. `toggle` true stops the cue if it is already playing on its layer. |
 | `playSound(code, { fadeIn, fadeOut, loop, volume, toggle })` | Sound action, same defaults. |
-| `playTimeline(code)` | Timeline action. No options; the timeline's own loop and fades apply. Re-running while parked at an unnamed hold releases it. |
+| `playTimeline(code, { loop, fadeIn, fadeOut, dimmer, volume })` | Timeline action. `loop` absent keeps the timeline's own; fades of 0 keep the timeline's own; `dimmer` and `volume` are 0..1 scales on the timeline's dimmer and on every sound it plays. Re-running while parked at an unnamed hold releases it. |
 | `fadeToPreset(code, durationMs)` | Preset action with the fade as fade-in. |
 | `stopPlayback()` | StopPlayback action: everything stops. |
 | `fadeOut(durationMs)` | FadeOut action: current cue and sound fade out. |

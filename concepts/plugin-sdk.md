@@ -2,7 +2,7 @@
 
 **Audience:** plugin authors, integrators, and AI agents designing a plugin
 without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `e36880c2`
+**Verified against:** DMX Core 100 software `main` at commit `1cfcdeb0`
 (2026-09-16), Plugin SDK contract 1.12.
 **User-facing documentation:**
 <https://docs.dmxcore.com/dmx-core-100/integrations/plugins>,

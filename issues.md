@@ -95,7 +95,8 @@ contract change.
 
 ### #135 — Custom menu: read-only Control Value display item
 
-*Open, 2026-09-16. Cited by: control-values.md section 7.*
+*Shipped 2026-09-16 (Core commit 69c5931a) as the `ValueDisplay` item.
+Described in custom-menus-and-control-surfaces.md section 2.2.*
 
 **Motivation.** The custom menu (touchscreen and web) has input items for
 Control Values (a slider for Level, a segmented row for Selector, action

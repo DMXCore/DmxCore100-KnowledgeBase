@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `d1357447`
+**Verified against:** DMX Core 100 software `main` at commit `1cfcdeb0`
 (2026-09-16).
 **User-facing documentation:**
 <https://docs.dmxcore.com/dmx-core-100/lighting/faders>,

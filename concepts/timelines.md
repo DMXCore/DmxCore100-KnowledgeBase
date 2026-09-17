@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `e36880c2`
+**Verified against:** DMX Core 100 software `main` at commit `1cfcdeb0`
 (2026-09-16), Plugin SDK contract 1.12.
 **User-facing documentation:**
 <https://docs.dmxcore.com/dmx-core-100/playback/timelines>,
@@ -197,10 +197,10 @@ wrap (section 5). While chasing timecode the loop is forced to 1.
 
 | Surface | How | Notes |
 |---|---|---|
-| Trigger action `Timeline` | Input trigger, control surface key, custom-menu item, schedule | Mode Normal or Momentary. Loop and fades on the action are ignored (section 3.3). |
+| Trigger action `Timeline` | Input trigger, control surface key, custom-menu item, schedule | Mode Normal or Momentary. The action's loop, fades, dimmer, and volume apply as in section 3.3. |
 | Schedule | Action type `Timeline` | Starts at the schedule start; at the end the instance stops, or finishes its pass with run-to-completion. |
-| Script | `dmx.playTimeline(code)` | No options. `dmx.isPlaying(code)` reports state. |
-| Integration API, MCP, plugin entity API | `timeline.CODE` entity of kind `scene`, command `activate` | `loop`, `fadeInMs`, `fadeOutMs` are accepted but ignored for timelines. |
+| Script | `dmx.playTimeline(code, options)` | Options `loop`, `fadeIn`, `fadeOut`, `dimmer`, `volume` (section 3.3). `dmx.isPlaying(code)` reports state. |
+| Integration API, MCP, plugin entity API | `timeline.CODE` entity of kind `scene`, command `activate` | `loop`, `fadeInMs`, `fadeOutMs` apply as in section 3.3; there is no dimmer or volume on the wire. |
 | Admin web API | `PUT /api/website/timeline/{id}/play` | Also `jump?posMS=`, `stop`, `pause`, `resume`, `release`, and `PUT /api/website/timelinecontrol/stop` for all timelines. |
 | Web UI and touchscreen | Timeline list and dashboard transport | Dashboard shows position, pause/resume, scrub, stop, and a HOLDING badge. |
 

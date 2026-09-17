@@ -2,7 +2,7 @@
 
 **Audience:** integrators, plugin authors, and AI agents planning an
 integration without access to the DMX Core 100 source code.
-**Verified against:** DMX Core 100 software `main` at commit `cc6ae738`
+**Verified against:** DMX Core 100 software `main` at commit `1cfcdeb0`
 (2026-09-16), Plugin SDK contract 1.11.
 **User-facing documentation:**
 <https://docs.dmxcore.com/dmx-core-100/scheduling-automation/input-triggers>,
@@ -88,7 +88,9 @@ started from the admin UI lists.
 | Flash | Fade to the preset over `fadeInDurationMS`. | Fade the preset out over `fadeOutDurationMS`. | Preset only, on control surfaces and custom menus with a release edge |
 | Momentary | Play the timeline. If the timeline is already parked at an unnamed Hold milestone, release it instead of restarting. | Release an unnamed Hold milestone (latching if the hold has not been reached yet). Holds that name a specific release trigger are not affected. | Timeline only |
 
-Only Flash and Momentary do anything on release. Every other action ignores
+Only Flash and Momentary do anything on release, plus the Control Value
+`Follow` operation, which is not a mode but behaves like one: the Toggle
+goes on at the press and off at the release. Every other action ignores
 the falling edge. Sources that have no release edge (HTTP triggers with no
 value, a schedule, a script call, the Integration API) can only produce
 Normal and Toggle behavior.
@@ -212,7 +214,7 @@ released.
 | `SwitchControlSurfaceBank` | | Activate a bank on a surface. | targetControlSurfaceId, targetBankIndex |
 | `NextControlSurfaceBank` | | Advance the surface's active bank. | targetControlSurfaceId |
 | `TapTempo` | | One tap on the system metronome. | |
-| `ControlValue` | Control Value code | Set, Up, Down, or Toggle the Control Value. See the Control Values document. | controlValueOperation, controlValueSetValue |
+| `ControlValue` | Control Value code | Set, Up, Down, Toggle, or Follow the Control Value. See the Control Values document. | controlValueOperation, controlValueSetValue, controlValueStepAmount |
 | `Script` | Script code | Queue the script. Dispatch does not wait for it. | |
 | `EffectStep` | Effect code, or `*` / empty | Advance one step of an effect in external-trigger sync mode. `*` steps every active such effect. | |
 | `StopOutput` | | Legacy. Behaves as Blackout. Existing definitions are upgraded. | |
@@ -383,7 +385,7 @@ private, so quote the number when you talk to DMX Core and read
 | Hex or escaped bytes in UDP and TCP output payloads | Fixed: output payloads use the trigger payload syntax (section 9). | Closed, #141 |
 | TCP output without a matching TCP Connector trigger | Fixed: the device holds its own connection per TCP output event and shares it with a trigger on the same endpoint (section 9). | Closed, #141 |
 | Schedule fade-out at end | Fixed: `fadeOutDurationMS` applies when a schedule ends (section 6). | Closed, #140 |
-| Schedule action types | Cue, Timeline, Preset, Sound, AmbientPreset, OutputToggle, Blackout only. Script is requested. | Partly open, #143 |
+| Schedule action types | Cue, Timeline, Preset, Sound, AmbientPreset, OutputToggle, Blackout, and Script (since #143). OutputEvent, Mute, ScheduleToggle, StopPlayback, and FadeOut are not schedule targets. | By design |
 | Plugin trigger payload | `FireAsync(code)` carries no data; the script context payload is empty. | Not planned |
 | Digital input release edge | Fixed: a digital-input trigger now reports both edges (section 3.2). Acting on "contact opened" with its own action still needs a second, inverted trigger (threshold 0). | Closed, #139 |
 | Press-and-hold auto-repeat | Stream Deck and OSC surfaces only, Control Value Up/Down only. | Deferred for MIDI and keypads |
